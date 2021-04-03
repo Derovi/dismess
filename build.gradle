@@ -5,7 +5,7 @@ plugins {
 }
 
 group 'by.dismess.core'
-version '0.2-SNAPSHOT'
+version '0.2-snapshot'
 
 repositories {
     jcenter()
@@ -28,7 +28,7 @@ publishing {
     repositories {
         maven {
             name = "GitHubPackages"
-            url = "https://maven.pkg.github.com/derovi/Dismess"
+            url = "https://maven.pkg.github.com/derovi/dismess"
             credentials {
                 username = System.getenv("GITHUB_ACTOR")
                 password = System.getenv("GITHUB_TOKEN")
