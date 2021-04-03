@@ -15,4 +15,4 @@ jobs:
          uses: actions/checkout@v2
 
        - name: "ktlint"
-         uses: "vroy/gha-kotlin-linter@v1"
+         uses: "vroy/gha-kotlin-linter@v2"
