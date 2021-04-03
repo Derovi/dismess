@@ -4,11 +4,8 @@ import by.dismess.core.model.Message
 import by.dismess.core.model.User
 import by.dismess.core.model.UserID
 import by.dismess.core.model.attachments.ImageAttachment
-import by.dismess.core.services.EventListener
 
-class APIImplementation(
-    private val eventListener: EventListener,
-) : API {
+class APIImplementation : API {
     override suspend fun registration() {
         TODO("Not yet implemented")
     }

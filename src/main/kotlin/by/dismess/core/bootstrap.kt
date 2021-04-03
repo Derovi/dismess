@@ -10,7 +10,7 @@ import org.koin.dsl.module
 internal lateinit var App: KoinApplication
 
 private var apiModule = module {
-    single<API> { APIImplementation(App.koin.get()) }
+    single<API> { APIImplementation() }
 }
 
 private var innerModule = module {
