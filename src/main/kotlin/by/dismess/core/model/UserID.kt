@@ -1,5 +1,5 @@
 package by.dismess.core.model
 
-import java.util.UUID
+import java.math.BigInteger
 
-data class UserID(val uuid: UUID)
+data class UserID(val rawID: BigInteger)
