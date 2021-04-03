@@ -2,4 +2,5 @@ build
 .idea
 .gradle
 gradle
+gradlew.bat
 gradlew
