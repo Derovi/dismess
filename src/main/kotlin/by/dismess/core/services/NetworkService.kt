@@ -1,7 +1,6 @@
 package by.dismess.core.services
 
 import by.dismess.core.outer.NetworkInterface
-import java.net.InetAddress
 
 class NetworkService(
     networkInterface: NetworkInterface
@@ -12,6 +11,7 @@ class NetworkService(
     private val handlers = mutableMapOf<String, MutableList<(data: String) -> Unit>>()
     init {
         networkInterface.setMessageReceiver { sender, data ->
+
         }
     }
 }
