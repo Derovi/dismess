@@ -1,4 +1,4 @@
-package by.dismess.core.services
+package by.dismess.core.outer
 
 import by.dismess.core.model.Message
 

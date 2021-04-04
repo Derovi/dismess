@@ -1,6 +1,6 @@
-package by.dismess.core.services
+package by.dismess.core.outer
 
-interface StorageService {
+interface StorageInterface {
     suspend fun saveRawData(key: String, data: ByteArray)
     suspend fun loadRawData(key: String): ByteArray
 }
