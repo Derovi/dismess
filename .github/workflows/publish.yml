@@ -20,6 +20,6 @@ jobs:
         with:
           java-version: 1.8
       - name: Publish package
-        run: 'test -f build.gradle && gradle publish. ; test -f build.gradle || echo build.gradle not found! Skipping publishing.'
+        run: 'test -f build.gradle && gradle publish ; test -f build.gradle || echo build.gradle not found! Skipping publishing.'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
