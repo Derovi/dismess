@@ -6,10 +6,11 @@ import by.dismess.core.outer.NetworkInterface
 import java.net.InetSocketAddress
 
 class NetworkService(
-    val networkInterface: NetworkInterface
+    private val networkInterface: NetworkInterface
 ) {
     /**
      * Tag to list of registered handlers
+     * @note You can use several handlers with one tag for debugging
      */
     private val handlers = mutableMapOf<String, MutableList<(message: NetworkMessage) -> Unit>>()
         .withDefault { mutableListOf() }
@@ -22,6 +23,11 @@ class NetworkService(
             }
         }
     }
+
+    /**
+     * Each part of Core, that logically has its own handler, must have its own tag
+     * @example DHT has tag "DHT"
+     */
     fun registerHandler(tag: String, handler: (message: NetworkMessage) -> Unit) {
         handlers[tag]!!.add(handler) // has default mutableList
     }
