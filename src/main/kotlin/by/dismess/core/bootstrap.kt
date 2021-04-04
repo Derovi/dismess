@@ -1,6 +1,7 @@
 package by.dismess.core
 
 import by.dismess.core.services.NetworkService
+import by.dismess.core.services.StorageService
 import com.beust.klaxon.Klaxon
 import org.koin.core.KoinApplication
 import org.koin.core.context.loadKoinModules
@@ -23,6 +24,7 @@ private var apiModule = module {
 private var innerModule = module {
     // describes dependencies inside Core (NOT VISIBLE for users)
     single { NetworkService(get()) }
+    single { StorageService(get()) }
 }
 
 fun startCore(outerModule: Module) {
