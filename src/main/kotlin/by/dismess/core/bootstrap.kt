@@ -1,5 +1,6 @@
 package by.dismess.core
 
+import by.dismess.core.services.NetworkService
 import org.koin.core.KoinApplication
 import org.koin.core.context.loadKoinModules
 import org.koin.core.context.unloadKoinModules
@@ -19,6 +20,7 @@ private var apiModule = module {
 
 private var innerModule = module {
     // describes dependencies inside Core (NOT VISIBLE for users)
+    single { NetworkService(get()) }
 }
 
 fun startCore(outerModule: Module) {
