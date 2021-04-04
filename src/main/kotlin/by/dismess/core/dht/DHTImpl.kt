@@ -1,11 +1,11 @@
 package by.dismess.core.dht
 
-import by.dismess.core.services.NetworkInterface
+import by.dismess.core.services.NetworkService
 import by.dismess.core.services.StorageService
 
 class DHTImpl(
-    val networkInterface: NetworkInterface,
-    val storageInterface: StorageService
+    val networkService: NetworkService,
+    val storageService: StorageService
 ) : DHT {
     override fun store(key: String, data: ByteArray) {
         TODO("Not yet implemented")
