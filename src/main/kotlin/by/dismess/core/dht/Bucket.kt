@@ -1,11 +1,7 @@
 package by.dismess.core.dht
 
-import java.math.BigInteger
-import java.util.*
-
-data class Bucket(
-    val leftBorder : BigInteger,
-    val rightBorder : BigInteger,
+class Bucket(
+    val border: BucketBorder
 ) {
-    var data = mutableListOf<Map.Entry<String, ByteArray>>()
+    val data = mutableListOf<Map.Entry<String, ByteArray>>()
 }
