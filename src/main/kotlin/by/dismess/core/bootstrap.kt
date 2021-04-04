@@ -27,7 +27,7 @@ private var innerModule = module {
     // describes dependencies inside Core (NOT VISIBLE for users)
     single { NetworkService(get()) }
     single { StorageService(get()) }
-    single<DHT> { DHTImpl(get(), get()) }
+    single<DHT> { DHTImpl(get(), get(), get()) }
 }
 
 fun startCore(outerModule: Module) {

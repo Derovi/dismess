@@ -5,11 +5,11 @@ import by.dismess.core.services.NetworkService
 import by.dismess.core.services.StorageService
 import java.math.BigInteger
 import java.util.*
-import kotlin.collections.ArrayList
 
 class DHTImpl(
     val networkService: NetworkService,
-    val storageService: StorageService
+    val storageService: StorageService,
+    val ownerID : UserID,
 ) : DHT {
 
     private val K : Int = 8
@@ -17,11 +17,33 @@ class DHTImpl(
     private var table : LinkedList<Bucket> = LinkedList()
 
     override fun store(key: String, data: ByteArray) {
+        val idFromKey : BigInteger = TODO("Some hash of key")
 
-        TODO("Not yet implemented")
+        val bucket = table.filter { it.border.contains(idFromKey) }.get(0)
+        if (bucket.border.contains(ownerID.rawID)) {
+            bucket.data.add(Pair(key, data))
+            if (bucket.data.size > K) {
+                val middle = (bucket.border.left + bucket.border.right) / BigInteger.TWO
+                val firstBucket = Bucket(BucketBorder(bucket.border.left, middle))
+                val secondBucket = Bucket(BucketBorder(middle, bucket.border.right))
+                bucket.data.filter { firstBucket.border.contains(TODO("Hash from key")) }
+                    .map { firstBucket.data.add(it) }
+                bucket.data.filter { secondBucket.border.contains(TODO("Hash from key")) }
+                    .map { secondBucket.data.add(it) }
+            }
+        } else {
+            if (bucket.data.size < K) {
+                bucket.data.add(Pair(key, data))
+            } else {
+                TODO("Ping all users from bucket to find the dead")
+            }
+        }
     }
 
     override fun retrieve(key: String): ByteArray {
-        TODO("Not yet implemented")
+        val idFromKey : BigInteger = TODO("Some hash of key")
+
+        val bucket = table.filter { it.border.contains(idFromKey) }.get(0)
+
     }
 }

@@ -11,5 +11,5 @@ data class BucketBorder(
     val left: BigInteger,
     val right: BigInteger
 ) {
-    fun contains(id: BigInteger) = id in left..right
+    fun contains(id: BigInteger) = id in left..(right - BigInteger.ONE)
 }
