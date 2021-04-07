@@ -8,7 +8,7 @@ import java.util.LinkedList
 
 class DHTImpl(
     val networkService: NetworkService,
-    val storageService: StorageService,
+    val storageService: StorageService
 ) : DHT {
 
     private val bucketSize: Int = 8
@@ -47,6 +47,7 @@ class DHTImpl(
     override fun findNodes(target: String, count: Int, maxDistance: BigInteger): Bucket {
         TODO("Not yet implemented")
     }
+
     override fun retrieve(key: String): ByteArray {
         TODO("Not implemented yet")
     }
