@@ -8,7 +8,7 @@ import java.util.LinkedList
 
 class DHTImpl(
     val networkService: NetworkService,
-    val storageService: StorageService,
+    val storageService: StorageService
 ) : DHT {
 
     private val bucketSize: Int = 8
