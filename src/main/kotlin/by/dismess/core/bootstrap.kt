@@ -1,6 +1,8 @@
 package by.dismess.core
 
 import by.dismess.core.events.EventBus
+import by.dismess.core.managers.UserManager
+import by.dismess.core.managers.UserManagerImpl
 import by.dismess.core.services.NetworkService
 import by.dismess.core.services.StorageService
 import com.beust.klaxon.Klaxon
@@ -16,6 +18,10 @@ import org.koin.dsl.module
  */
 internal lateinit var App: KoinApplication
 val klaxon = Klaxon()
+
+private var managersModule = module {
+    single<UserManager> { UserManagerImpl() }
+}
 
 private var apiModule = module {
     // describes dependencies that should be visible for users
