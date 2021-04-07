@@ -9,7 +9,7 @@ class EventBus {
             handler(event)
         }
     }
-    inline fun <reified T : Event> registerHandler(a: T, noinline handler: (T) -> Unit) {
+    inline fun <reified T : Event> registerHandler(noinline handler: (T) -> Unit) {
         @Suppress("UNCHECKED_CAST")
         handlers.getOrPut(T::class) { mutableListOf() }.add(handler as EventHandler)
     }
