@@ -8,9 +8,4 @@ data class User(
     var displayName: String? = null,
     var avatar: ImageAttachment? = null,
     var lastIP: Inet4Address? = null
-) {
-    init {
-        TODO("Initialize userID by login")
-    }
-    val userID: UserID
-}
+)
