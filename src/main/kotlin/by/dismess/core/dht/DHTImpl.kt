@@ -11,17 +11,17 @@ class DHTImpl(
     val storageService: StorageService,
 ) : DHT {
 
-    private val K: Int = 8
+    private val bucketSize: Int = 8
     private var table: LinkedList<Bucket> = LinkedList()
     private val ownerId: UserID = TODO()
 
     override fun store(key: String, data: ByteArray) {
         val idFromKey: BigInteger = TODO("Some hash of key")
 
-        val bucket = table.filter { it.border.contains(idFromKey) }.get(0)
+        val bucket = table.filter { it.border.contains(idFromKey) }[0]
         if (bucket.border.contains(ownerId.rawID)) {
             bucket.data.add(Pair(idFromKey, data))
-            if (bucket.data.size > K) {
+            if (bucket.data.size > bucketSize) {
                 val middle = (bucket.border.left + bucket.border.right) / BigInteger.TWO
                 val firstBucket = Bucket(BucketBorder(bucket.border.left, middle))
                 val secondBucket = Bucket(BucketBorder(middle, bucket.border.right))
@@ -31,7 +31,7 @@ class DHTImpl(
                     .map { secondBucket.data.add(it) }
             }
         } else {
-            if (bucket.data.size < K) {
+            if (bucket.data.size < bucketSize) {
                 bucket.data.add(Pair(idFromKey, data))
             } else {
                 TODO("Ping all users from bucket to find the dead")
@@ -41,10 +41,10 @@ class DHTImpl(
 
     override fun getKeyBucket(key: String): Bucket {
         val idFromKey: BigInteger = TODO("Some hash of key")
-        return table.filter { it.border.contains(idFromKey) }.get(0)
+        return table.filter { it.border.contains(idFromKey) }[0]
     }
 
-    override fun findNodes(taget: String, count: Int, maxDistance: BigInteger): Bucket {
+    override fun findNodes(target: String, count: Int, maxDistance: BigInteger): Bucket {
         TODO("Not yet implemented")
     }
     override fun retrieve(key: String): ByteArray {
