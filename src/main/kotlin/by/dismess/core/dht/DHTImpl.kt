@@ -39,6 +39,14 @@ class DHTImpl(
         }
     }
 
+    override fun getKeyBucket(key: String): Bucket {
+        val idFromKey: BigInteger = TODO("Some hash of key")
+        return table.filter { it.border.contains(idFromKey) }.get(0)
+    }
+
+    override fun findNodes(taget: String, count: Int, maxDistance: BigInteger): Bucket {
+        TODO("Not yet implemented")
+    }
     override fun retrieve(key: String): ByteArray {
         TODO("Not implemented yet")
     }
