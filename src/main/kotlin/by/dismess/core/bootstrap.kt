@@ -3,8 +3,6 @@ package by.dismess.core
 import by.dismess.core.events.EventBus
 import by.dismess.core.services.NetworkService
 import by.dismess.core.services.StorageService
-import by.dismess.core.utils.UserIDGenerator
-import by.dismess.core.utils.UserIdGeneratorImpl
 import com.beust.klaxon.Klaxon
 import org.koin.core.KoinApplication
 import org.koin.core.context.loadKoinModules
@@ -31,13 +29,9 @@ private var servicesModule = module {
     single { StorageService(get()) }
 }
 
-private var utilsModule = module {
-    single<UserIDGenerator> { UserIdGeneratorImpl() }
-}
-
 fun startCore(outerModule: Module) {
     App = koinApplication {
-        modules(servicesModule, utilsModule, outerModule)
+        modules(servicesModule, outerModule)
     }
     loadKoinModules(apiModule)
 }
