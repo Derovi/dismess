@@ -6,6 +6,7 @@ import by.dismess.core.outer.StorageInterface
 class StorageService(
     val storageInterface: StorageInterface
 ) {
+    suspend fun exists(key: String) = storageInterface.exists(key)
     suspend fun save(key: String, data: Any) {
         storageInterface.saveRawData(key, klaxon.toJsonString(data).toByteArray())
     }
