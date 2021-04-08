@@ -1,5 +1,7 @@
 package by.dismess.core
 
+import by.dismess.core.dht.DHT
+import by.dismess.core.dht.DHTImpl
 import by.dismess.core.events.EventBus
 import by.dismess.core.managers.UserManager
 import by.dismess.core.managers.UserManagerImpl
@@ -29,15 +31,19 @@ private var apiModule = module {
     single { EventBus() }
 }
 
-private var services = module {
+private var servicesModule = module {
     // describes dependencies inside Core (NOT VISIBLE for users)
     single { NetworkService(get()) }
     single { StorageService(get()) }
 }
 
+private var dhtModule = module {
+    single<DHT> { DHTImpl(get(), get()) }
+}
+
 fun startCore(outerModule: Module) {
     App = koinApplication {
-        modules(services, outerModule)
+        modules(servicesModule, dhtModule, outerModule)
     }
     loadKoinModules(apiModule)
 }
