@@ -1,5 +1,7 @@
 package by.dismess.core
 
+import by.dismess.core.dht.DHT
+import by.dismess.core.dht.DHTImpl
 import by.dismess.core.events.EventBus
 import by.dismess.core.services.NetworkService
 import by.dismess.core.services.StorageService
@@ -29,9 +31,13 @@ private var servicesModule = module {
     single { StorageService(get()) }
 }
 
+private var dhtModule = module {
+    single<DHT> { DHTImpl(get(), get()) }
+}
+
 fun startCore(outerModule: Module) {
     App = koinApplication {
-        modules(servicesModule, outerModule)
+        modules(servicesModule, dhtModule, outerModule)
     }
     loadKoinModules(apiModule)
 }
