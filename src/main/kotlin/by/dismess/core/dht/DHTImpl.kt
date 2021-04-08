@@ -44,7 +44,7 @@ class DHTImpl(
         return table.filter { it.border.contains(idFromKey) }[0]
     }
 
-    override fun findNodes(target: String, count: Int, maxDistance: BigInteger): Bucket {
+    override fun findNodes(target: BigInteger, count: Int, maxDistance: BigInteger): Bucket {
         TODO("Not yet implemented")
     }
     override fun retrieve(key: String): ByteArray {
