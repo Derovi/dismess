@@ -25,7 +25,7 @@ private var apiModule = module {
     single { EventBus() }
 }
 
-private var services = module {
+private var servicesModule = module {
     // describes dependencies inside Core (NOT VISIBLE for users)
     single { NetworkService(get()) }
     single { StorageService(get()) }
@@ -37,7 +37,7 @@ private var dhtModule = module {
 
 fun startCore(outerModule: Module) {
     App = koinApplication {
-        modules(services, dhtModule, outerModule)
+        modules(servicesModule, dhtModule, outerModule)
     }
     loadKoinModules(apiModule)
 }
