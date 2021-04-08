@@ -13,7 +13,7 @@ import java.net.InetSocketAddress
 
 class NetworkServiceTest : KoinTest {
 
-    val networkService by inject<NetworkService>()
+    private val networkService by inject<NetworkService>()
 
     @get:Rule
     val koinTestRule = KoinTestRule.create {

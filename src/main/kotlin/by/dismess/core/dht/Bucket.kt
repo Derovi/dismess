@@ -1,9 +1,10 @@
 package by.dismess.core.dht
 
 import java.math.BigInteger
+import java.net.InetSocketAddress
 
 class Bucket(
     val border: BucketBorder
 ) {
-    val data = mutableListOf<Pair<BigInteger, ByteArray>>()
+    val idToIP = mutableMapOf<BigInteger, InetSocketAddress>()
 }
