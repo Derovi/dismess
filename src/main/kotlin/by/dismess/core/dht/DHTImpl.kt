@@ -5,15 +5,14 @@ import by.dismess.core.services.NetworkService
 import by.dismess.core.services.StorageService
 import java.math.BigInteger
 import java.net.InetSocketAddress
-import java.util.LinkedList
+
+const val BUCKET_SIZE = 8
 
 class DHTImpl(
     val networkService: NetworkService,
     val storageService: StorageService
 ) : DHT {
-
-    private val bucketSize: Int = 8
-    private var table: LinkedList<Bucket> = LinkedList()
+    private var table = mutableListOf<Bucket>()
     private val ownerId: UserID = TODO()
 
     override fun store(key: String, data: ByteArray) {
@@ -22,7 +21,7 @@ class DHTImpl(
 
     private fun getBucket(key: String): Bucket {
         val idFromKey: BigInteger = TODO("Some hash of key")
-        return table.filter { it.border.contains(idFromKey) }[0]
+        return table.first { it.border.contains(idFromKey) }
     }
 
     private fun findNearestNodes(
