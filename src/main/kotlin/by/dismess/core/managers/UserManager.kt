@@ -6,7 +6,13 @@ import by.dismess.core.network.NetworkMessage
 
 interface UserManager {
     suspend fun isOnline(userId: UserID): Boolean
-    suspend fun sendNetworkMessage(networkMessage: NetworkMessage)
+
+    /**
+     * Send one-directional message
+     */
+    suspend fun sendNetworkMessage(networkMessage: NetworkMessage,
+                                   userStatusChanged: ((UserStatus) -> Unit)? = null)
+
     suspend fun retrieveUser(userId: UserID): User
     suspend fun retrieveUserNoAvatar(userId: UserID): User // retrieve user without avatar
 }

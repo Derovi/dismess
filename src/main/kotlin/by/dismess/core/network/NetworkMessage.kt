@@ -8,5 +8,5 @@ data class NetworkMessage(
     var data: String
 ) {
     @Json(ignored = true)
-    lateinit var senderAddress: InetAddress
+    lateinit var sender: InetAddress
 }
