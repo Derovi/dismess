@@ -33,14 +33,19 @@ class NetworkService(
     fun registerHandler(tag: String, handler: MessageHandler) {
         handlers[tag]?.add(handler) ?: run { handlers[tag] = mutableListOf(handler) }
     }
-    suspend fun sendMessage(address: InetSocketAddress, tag: String, data: Any) {
-        sendMessage(address, tag, klaxon.toJsonString(data))
-    }
-    suspend fun sendMessage(address: InetSocketAddress, tag: String, data: String) {
-        sendMessage(address, NetworkMessage(tag, data))
-    }
-    suspend fun sendMessage(address: InetSocketAddress, message: NetworkMessage) {
+    suspend fun sendMessage(address: InetSocketAddress, tag: String, data: Any, timeout: Long = 1000): Boolean =
+        sendMessage(address, tag, klaxon.toJsonString(data), timeout)
+
+    suspend fun sendMessage(address: InetSocketAddress, tag: String, data: String, timeout: Long = 1000): Boolean =
+        sendMessage(address, NetworkMessage(tag, data), timeout)
+
+    /**
+     * Returns true if message delivered successfully, false if not
+     */
+    suspend fun sendMessage(address: InetSocketAddress, message: NetworkMessage, timeout: Long = 1000): Boolean {
+        message.verificationTag = randomTag()
         networkInterface.sendRawMessage(address, klaxon.toJsonString(message).toByteArray())
+        return waitForAMessage(message.verificationTag!!, timeout) != null
     }
 
     /**

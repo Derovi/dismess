@@ -10,8 +10,11 @@ interface UserManager {
     /**
      * Send one-directional message
      */
-    suspend fun sendNetworkMessage(networkMessage: NetworkMessage,
-                                   userStatusChanged: ((UserStatus) -> Unit)? = null)
+    suspend fun sendNetworkMessage(
+            userId: UserID,
+            networkMessage: NetworkMessage,
+            userStatusChanged: ((UserStatus) -> Unit)? = null
+    ): Boolean
 
     suspend fun retrieveUser(userId: UserID): User
     suspend fun retrieveUserNoAvatar(userId: UserID): User // retrieve user without avatar
