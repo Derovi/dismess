@@ -4,6 +4,7 @@ import by.dismess.core.klaxon
 import by.dismess.core.network.NetworkMessage
 import by.dismess.core.outer.NetworkInterface
 import java.net.InetSocketAddress
+import java.util.*
 
 class NetworkService(
     private val networkInterface: NetworkInterface
@@ -29,11 +30,16 @@ class NetworkService(
     fun registerHandler(tag: String, handler: (message: NetworkMessage) -> Unit) {
         handlers[tag]?.add(handler) ?: run { handlers[tag] = mutableListOf(handler) }
     }
-    fun sendMessage(address: InetSocketAddress, tag: String, data: Any) {
+    suspend fun sendMessage(address: InetSocketAddress, tag: String, data: Any) {
         sendMessage(address, tag, klaxon.toJsonString(data))
     }
-    fun sendMessage(address: InetSocketAddress, tag: String, data: String) {
-        val message = NetworkMessage(tag, data)
+    suspend fun sendMessage(address: InetSocketAddress, tag: String, data: String) {
+        sendMessage(address, NetworkMessage(tag, data))
+    }
+    suspend fun sendMessage(address: InetSocketAddress, message: NetworkMessage) {
         networkInterface.sendRawMessage(address, klaxon.toJsonString(message).toByteArray())
+    }
+    companion object {
+        fun randomTag() = UUID.randomUUID().toString()
     }
 }
