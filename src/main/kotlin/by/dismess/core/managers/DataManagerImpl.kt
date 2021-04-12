@@ -1,8 +1,10 @@
 package by.dismess.core.managers
 
+import by.dismess.core.model.UserID
 import by.dismess.core.model.attachments.ImageAttachment
 import by.dismess.core.services.StorageService
 import java.net.Inet4Address
+import java.net.InetSocketAddress
 
 class DataManagerImpl(
     val storageService: StorageService
@@ -26,9 +28,15 @@ class DataManagerImpl(
     override suspend fun getAvatar(): ImageAttachment? =
         storageService.load(DataManager.Keys.AVATAR)
 
-    override suspend fun saveLastIP(ip: Inet4Address): Unit =
-        storageService.save(DataManager.Keys.LAST_IP, ip)
+    override suspend fun saveMyIP(ip: InetSocketAddress): Unit =
+        storageService.save(DataManager.Keys.MY_IP, ip)
 
-    override suspend fun getLastIP(): Inet4Address =
-        storageService.load(DataManager.Keys.LAST_IP)
+    override suspend fun getMyIP(): InetSocketAddress? =
+        storageService.load(DataManager.Keys.MY_IP)
+
+    override suspend fun saveLastIP(userID: UserID, ip: InetSocketAddress): Unit =
+        storageService.save(DataManager.Keys.LAST_IP_PREF + userID, ip)
+
+    override suspend fun getLastIP(userID: UserID): InetSocketAddress?  =
+        storageService.load(DataManager.Keys.LAST_IP_PREF + userID)
 }

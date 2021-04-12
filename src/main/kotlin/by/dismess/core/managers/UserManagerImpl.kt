@@ -9,7 +9,8 @@ import java.net.InetSocketAddress
 
 class UserManagerImpl(
     val dht: DHT,
-    val networkService: NetworkService
+    val networkService: NetworkService,
+    val dataManager: DataManager
 ) : UserManager {
     companion object {
         const val TIMEOUT = 1000
@@ -21,17 +22,18 @@ class UserManagerImpl(
      * 2) userStatusChanged callback allows to catch request to dht
      */
     override suspend fun sendNetworkMessage(
-            userId: UserID,
+            userID: UserID,
             message: NetworkMessage, userStatusChanged: ((UserStatus) -> Unit)?
     ): Boolean {
-        val savedAddress: InetSocketAddress = InetSocketAddress(33)// TODO get saved address
-        if (networkService.sendMessage(savedAddress, message)) {
-            return true
+        dataManager.getLastIP(userID) ?.also {  savedIP ->
+            if (networkService.sendMessage(savedIP, message)) {
+                return true
+            }
         }
         userStatusChanged?.invoke(UserStatus.RETRIEVING_IP)
         // online of successfully responsed
-        val newAddress = dht.find(userId) // try to find new address
-        // TODO store new address
+        val newAddress = dht.find(userID) // try to find new address
+        dataManager.saveLastIP(userID, newAddress)
         return networkService.sendMessage(newAddress, message)
     }
 

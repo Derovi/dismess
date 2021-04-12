@@ -24,7 +24,7 @@ internal lateinit var App: KoinApplication
 val klaxon = Klaxon()
 
 private var managersModule = module {
-    single<UserManager> { UserManagerImpl(get(), get()) }
+    single<UserManager> { UserManagerImpl(get(), get(), get()) }
     single<DataManager> { DataManagerImpl(get()) }
 }
 
