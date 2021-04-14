@@ -5,7 +5,6 @@ import by.dismess.core.model.User
 import by.dismess.core.model.UserID
 import by.dismess.core.network.NetworkMessage
 import by.dismess.core.services.NetworkService
-import java.net.InetSocketAddress
 
 class UserManagerImpl(
     val dht: DHT,
@@ -22,10 +21,11 @@ class UserManagerImpl(
      * 2) userStatusChanged callback allows to catch request to dht
      */
     override suspend fun sendNetworkMessage(
-            userID: UserID,
-            message: NetworkMessage, userStatusChanged: ((UserStatus) -> Unit)?
+        userID: UserID,
+        message: NetworkMessage,
+        userStatusChanged: ((UserStatus) -> Unit)?
     ): Boolean {
-        dataManager.getLastIP(userID) ?.also {  savedIP ->
+        dataManager.getLastIP(userID) ?.also { savedIP ->
             if (networkService.sendMessage(savedIP, message)) {
                 return true
             }
@@ -38,10 +38,10 @@ class UserManagerImpl(
     }
 
     override suspend fun isOnline(userId: UserID): Boolean =
-            sendNetworkMessage(userId, NetworkMessage("null", ""))
+        sendNetworkMessage(userId, NetworkMessage("null", ""))
 
     override suspend fun retrieveUser(userId: UserID): User {
-        TODO("Not yet implemented")
+        sendNetworkMessage(userId, NetworkMessage(""))
     }
 
     override suspend fun retrieveUserNoAvatar(userId: UserID): User {
