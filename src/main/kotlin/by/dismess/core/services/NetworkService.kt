@@ -37,19 +37,28 @@ class NetworkService(
     fun forgetHandler(tag: String, handler: MessageHandler) {
         handlers[tag]?.remove(handler)
     }
-    suspend fun sendMessage(address: InetSocketAddress, tag: String, data: Any, timeout: Long = 1000): Boolean =
-        sendMessage(address, tag, klaxon.toJsonString(data), timeout)
+    suspend fun sendPost(address: InetSocketAddress, tag: String, data: Any, timeout: Long = 1000): Boolean =
+        sendPost(address, tag, klaxon.toJsonString(data), timeout)
 
-    suspend fun sendMessage(address: InetSocketAddress, tag: String, data: String, timeout: Long = 1000): Boolean =
-        sendMessage(address, NetworkMessage(tag, data), timeout)
+    suspend fun sendPost(address: InetSocketAddress, tag: String, data: String, timeout: Long = 1000): Boolean =
+        sendPost(address, NetworkMessage(tag, data), timeout)
 
     /**
      * Returns true if message delivered successfully, false if not
      */
-    suspend fun sendMessage(address: InetSocketAddress, message: NetworkMessage, timeout: Long = 1000): Boolean {
+    suspend fun sendPost(address: InetSocketAddress, message: NetworkMessage, timeout: Long = 1000): Boolean {
         message.verificationTag = randomTag()
         networkInterface.sendRawMessage(address, klaxon.toJsonString(message).toByteArray())
         return waitForAMessage(message.verificationTag!!, timeout) != null
+    }
+
+    /**
+     * Returns response if message delivered successfully, null if not
+     */
+    suspend fun sendGet(address: InetSocketAddress, message: NetworkMessage, timeout: Long = 1000): NetworkMessage? {
+        message.verificationTag = randomTag()
+        networkInterface.sendRawMessage(address, klaxon.toJsonString(message).toByteArray())
+        return waitForAMessage(message.verificationTag!!, timeout)
     }
 
     /**

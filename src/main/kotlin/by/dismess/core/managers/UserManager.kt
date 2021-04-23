@@ -11,9 +11,9 @@ interface UserManager {
      * Send one-directional message
      */
     suspend fun sendNetworkMessage(
-            userID: UserID,
-            message: NetworkMessage,
-            userStatusChanged: ((UserStatus) -> Unit)? = null
+        userID: UserID,
+        message: NetworkMessage,
+        userStatusChanged: ((UserStatus) -> Unit)? = null
     ): Boolean
 
     suspend fun retrieveUser(userId: UserID): User
