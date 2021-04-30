@@ -1,6 +1,7 @@
 package by.dismess.core.services
 
 import by.dismess.core.outer.NetworkInterface
+import kotlinx.coroutines.runBlocking
 import org.junit.Assert
 import org.junit.Rule
 import org.junit.Test
@@ -25,7 +26,7 @@ class NetworkServiceTest : KoinTest {
                     object : NetworkInterface {
                         private lateinit var receiver: (sender: InetAddress, data: ByteArray) -> Unit
 
-                        override fun sendRawMessage(address: InetSocketAddress, data: ByteArray) {
+                        override suspend fun sendRawMessage(address: InetSocketAddress, data: ByteArray) {
                             receiver(address.address, data)
                         }
 
@@ -46,11 +47,13 @@ class NetworkServiceTest : KoinTest {
             visited = true
             Assert.assertEquals(it.data, "Hello, world!")
             Assert.assertEquals(it.tag, "TEST")
-            Assert.assertEquals(it.senderAddress, InetAddress.getByName("123.123.254.4"))
+            Assert.assertEquals(it.sender, InetAddress.getByName("123.123.254.4"))
         }
-        networkService.sendMessage(
-            InetSocketAddress("123.123.254.4", 4567), "TEST", "Hello, world!"
-        )
+        runBlocking {
+            networkService.sendGet(
+                InetSocketAddress("123.123.254.4", 4567), "TEST", "Hello, world!"
+            )
+        }
         Assert.assertTrue(visited)
     }
 }

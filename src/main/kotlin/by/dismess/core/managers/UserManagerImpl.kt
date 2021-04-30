@@ -21,24 +21,26 @@ class UserManagerImpl(
      * 2) userStatusChanged callback allows to catch request to dht
      */
     override suspend fun sendNetworkMessage(
-            userID: UserID,
-            message: NetworkMessage,
-            userStatusChanged: ((UserStatus) -> Unit)?
+        userID: UserID,
+        message: NetworkMessage,
+        userStatusChanged: ((UserStatus) -> Unit)?
     ): Boolean {
-        dataManager.getLastIP(userID) ?.also { savedIP ->
-            if (networkService.sendPost(savedIP, message)) {
-                return true
-            }
-        }
-        userStatusChanged?.invoke(UserStatus.RETRIEVING_IP)
-        // online of successfully responsed
-        val newAddress = dht.find(userID) // try to find new address
-        dataManager.saveLastIP(userID, newAddress)
-        return networkService.sendPost(newAddress, message)
+        TODO("Not implemented on this branch")
+//        dataManager.getLastIP(userID) ?.also { savedIP ->
+//            if (networkService.sendPost(savedIP, message)) {
+//                return true
+//            }
+//        }
+//        userStatusChanged?.invoke(UserStatus.RETRIEVING_IP)
+//        // online of successfully responsed
+//        val newAddress = dht.find(userID) // try to find new address
+//        dataManager.saveLastIP(userID, newAddress)
+//        return networkService.sendPost(newAddress, message)
     }
 
     override suspend fun isOnline(userId: UserID): Boolean =
-        sendNetworkMessage(userId, NetworkMessage("null", ""))
+        TODO("Not implemented on this branch")
+    // sendNetworkMessage(userId, NetworkMessage("null", ""))
 
     override suspend fun retrieveUser(userId: UserID): User {
         TODO("Not yet implemented")
