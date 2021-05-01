@@ -38,7 +38,7 @@ class SecureNetworkInterfaceTest : KoinTest {
 
     private fun check(
         first: SecureNetworkInterface,
-        firstCounter: Int,
+        firstCounter: Int
     ) {
         val firstAddress = InetSocketAddress(1)
         val message = "Дарова".toByteArray()
