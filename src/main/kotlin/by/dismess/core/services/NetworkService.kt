@@ -78,12 +78,12 @@ class NetworkService(
         var handler: MessageHandler? = null
         val result = withTimeoutOrNull<NetworkMessage>(timeout) {
             suspendCoroutine { continuation ->
-                handler = registerHandler(tag) { message ->
+                handler = { message: NetworkMessage ->
                     continuation.resume(message)
-                }
+                }.also { responseHandlers.getOrPut(tag) { mutableListOf() }.add(it) }
             }
         }
-        handler?.let { forgetHandler(tag, it) }
+        responseHandlers[tag]?.remove(handler)
         return result
     }
 
