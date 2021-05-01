@@ -18,6 +18,7 @@ const val AES_SIZE: Int = 32
 const val KEY_SIZE: Int = 1024
 const val MAX_SESSIONS_SIZE: Int = 8
 const val SESSION_NUMBER_SIZE: Int = 2
+const val MAX_OFFSET = (KEY_SIZE - AES_SIZE * 8) / 8
 
 class Encryptor {
     private var keyAgreement: KeyAgreement = KeyAgreement.getInstance("DH")
@@ -31,7 +32,6 @@ class Encryptor {
 
     init {
         keyPairGenerator.initialize(KEY_SIZE)
-//        updateKey()
     }
 
     private fun generateCipherKey(aesKey: ByteArray, aesOffset: Int): Key {
@@ -48,7 +48,7 @@ class Encryptor {
     }
 
     private fun cipherKey(aesOffset: Int, key: ByteArray): Key? {
-        val sessionNumber: Int = twoBytesToInt(key.sliceArray(1..3))
+        val sessionNumber: Int = twoBytesToInt(key.sliceArray(0..2)) % (2 shl 16)
         val sessionKey = findSession(sessionNumber) ?: return null
         return generateCipherKey(sessionKey, aesOffset)
     }
@@ -63,8 +63,7 @@ class Encryptor {
      * @return new offset
      */
     private fun generateOffset(): Int {
-        val rightBorder: Int = (KEY_SIZE - AES_SIZE * 8) / 8
-        return (0..rightBorder).random()
+        return (0..MAX_OFFSET).random()
     }
 
     /**
@@ -120,8 +119,8 @@ class Encryptor {
         val cipher: Cipher = Cipher.getInstance(cipherAlgo)
         cipher.init(Cipher.ENCRYPT_MODE, key)
         aesSendOffset = generateOffset()
-        val msg = intToBytes(aesSendOffset) + intToBytes(currentSession, SESSION_NUMBER_SIZE) + message
-        val encrypted = cipher.doFinal(msg)
+        val msg = intToBytes(aesSendOffset) + message
+        val encrypted = intToBytes(currentSession, SESSION_NUMBER_SIZE) + cipher.doFinal(msg)
         return Base64.getEncoder().encode(encrypted)
     }
 
@@ -131,13 +130,13 @@ class Encryptor {
      * @return ByteArray with decrypted message
      */
     fun decrypt(message: ByteArray): ByteArray {
-        val key: Key = cipherKey(aesReceiveOffset, message) ?: return byteArrayOf()
+        val decodedValue: ByteArray = Base64.getDecoder().decode(message)
+        val key: Key = cipherKey(aesReceiveOffset, decodedValue) ?: return byteArrayOf()
         val cipher: Cipher = Cipher.getInstance(cipherAlgo)
         cipher.init(Cipher.DECRYPT_MODE, key)
-        val decodedValue: ByteArray = Base64.getDecoder().decode(message)
-        val result = cipher.doFinal(decodedValue)
+        val result = cipher.doFinal(decodedValue.sliceArray(2 until decodedValue.size))
         val offset = result[0]
         aesReceiveOffset = byteToInt(offset)
-        return result.sliceArray(3 until result.size)
+        return result.sliceArray(1 until result.size)
     }
 }

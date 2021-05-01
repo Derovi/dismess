@@ -29,7 +29,7 @@ class NetworkServiceTest : KoinTest {
                             receiver(address.address, data)
                         }
 
-                        override suspend fun setMessageReceiver(receiver: (sender: InetAddress, data: ByteArray) -> Unit) {
+                        override fun setMessageReceiver(receiver: (sender: InetAddress, data: ByteArray) -> Unit) {
                             this.receiver = receiver
                         }
                     }

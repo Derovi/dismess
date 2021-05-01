@@ -19,7 +19,8 @@ fun byteToInt(number: Byte): Int {
 }
 
 fun twoBytesToInt(number: ByteArray): Int {
-    return (number[0].toInt() shl 8) + number[1].toInt()
+    return (number[0].toInt() and 0xff shl 8) or
+        (number[1].toInt() and 0xff)
 }
 
 fun intToBytes(number: Int, size: Int = 1): ByteArray {

@@ -1,6 +1,8 @@
 package by.dismess.core.security
 
 import by.dismess.core.outer.NetworkInterface
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 import java.net.InetAddress
 import java.net.InetSocketAddress
 
@@ -8,10 +10,10 @@ import java.net.InetSocketAddress
  *                           DISMESS PROTOCOL
  *
  *                       Protocol for message
- *                +------+-------------+-----------+------------+....+----+
- *                |   0  | NEXT OFFSET |  SESSION  |     MESSAGE     |NULL|
- *                +------+-------------+-----------+------------+....+----+
-# of bytes:	         1        1              2           variable       1
+ *                +------+-----------+-------------+------------+....+----+
+ *                |   0  |  SESSION  | NEXT OFFSET |     MESSAGE     |NULL|
+ *                +------+-----------+-------------+------------+....+----+
+# of bytes:	         1        2              1           variable       1
  * SESSION is number of current session, goes unencrypted
  *
  *                       Protocol for key
@@ -32,17 +34,39 @@ class SecureNetworkInterface(
         return sessionManager.tryUpdateKey(address)
     }
 
+    private fun inetAddressToInetSocketAddress(address: InetAddress): InetSocketAddress {
+        return InetSocketAddress(1)
+    }
+
     override suspend fun sendRawMessage(address: InetSocketAddress, data: ByteArray) {
         val updatedKey = tryUpdateKey(address)
         if (updatedKey != null) {
             networkInterface.sendRawMessage(address, updatedKey)
-            TODO("BLOCK")
+            sessionManager.block(address)
         }
         val encryptedMessage = sessionManager.encrypt(address, data)
         networkInterface.sendRawMessage(address, encryptedMessage)
     }
 
     override fun setMessageReceiver(receiver: (sender: InetAddress, data: ByteArray) -> Unit) {
-        TODO("Not yet implemented")
+        networkInterface.setMessageReceiver { sender: InetAddress, data: ByteArray ->
+            val senderSocketAddress = inetAddressToInetSocketAddress(sender)
+            val response: TypedData = sessionManager.processData(senderSocketAddress, data)
+            when (response.type) {
+                DataType.MESSAGE -> {
+                    receiver(sender, response.data)
+                }
+                DataType.SEND_BACK_KEY -> {
+                    GlobalScope.launch {
+                        networkInterface.sendRawMessage(senderSocketAddress, response.data)
+                    }
+                }
+                DataType.KEY -> {
+                    GlobalScope.launch {
+                        sessionManager.release(senderSocketAddress)
+                    }
+                }
+            }
+        }
     }
 }

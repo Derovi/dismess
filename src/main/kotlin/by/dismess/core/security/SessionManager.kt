@@ -43,4 +43,14 @@ class SessionManager {
         }
         return protocolManager.processData(data)
     }
+
+    suspend fun block(address: InetSocketAddress) {
+        val protocolManager: ProtocolManager = addressToProtocolManager.getValue(address)
+        protocolManager.channel.receive()
+    }
+
+    suspend fun release(address: InetSocketAddress) {
+        val protocolManager: ProtocolManager = addressToProtocolManager.getValue(address)
+        protocolManager.channel.send(Unit)
+    }
 }

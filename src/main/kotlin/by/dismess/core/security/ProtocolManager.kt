@@ -1,5 +1,7 @@
 package by.dismess.core.security
 
+import kotlinx.coroutines.channels.Channel
+
 enum class DataType {
     SEND_BACK_KEY, KEY, MESSAGE
 }
@@ -8,8 +10,9 @@ enum class DataType {
 data class TypedData(val type: DataType, val data: ByteArray)
 
 class ProtocolManager {
-    var lastUpdateTime = System.currentTimeMillis()
     private val encryptor: Encryptor = Encryptor()
+    var lastUpdateTime = System.currentTimeMillis()
+    val channel: Channel<Unit> = Channel()
 
     private fun decrypt(data: ByteArray): ByteArray {
         return encryptor.decrypt(data)
@@ -23,21 +26,19 @@ class ProtocolManager {
         }
         encryptor.updateKey()
         encryptor.setReceiverPublicKey(data.sliceArray(1 until data.size))
-        return TypedData(type, encryptor.publicKeyBytes(updateSession = false))
+        val protocolPrefix: ByteArray = byteArrayOf(1, 1)
+        return TypedData(type, protocolPrefix + encryptor.publicKeyBytes(updateSession = false))
     }
 
     /**
      * Init new session
      * @return 1 byte joined with new public key
      */
-    fun updateKey(sendBack: Boolean = true): ByteArray {
+    fun updateKey(): ByteArray {
         encryptor.updateKey()
         lastUpdateTime = System.currentTimeMillis()
-        var secondByte = 0.toByte()
-        if (!sendBack) {
-            secondByte = 1.toByte()
-        }
-        return byteArrayOf(1, secondByte) + encryptor.publicKeyBytes(updateSession = true)
+        val order = 0.toByte()
+        return byteArrayOf(1, order) + encryptor.publicKeyBytes(updateSession = true)
     }
 
     /**
