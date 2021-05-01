@@ -4,6 +4,8 @@ import by.dismess.core.klaxon
 import by.dismess.core.network.MessageType
 import by.dismess.core.network.NetworkMessage
 import by.dismess.core.outer.NetworkInterface
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeoutOrNull
 import java.net.InetSocketAddress
 import java.util.UUID
@@ -30,6 +32,13 @@ class NetworkService(
     init {
         networkInterface.setMessageReceiver { sender, data ->
             val message = klaxon.parse<NetworkMessage>(String(data)) ?: return@setMessageReceiver
+            if (message.type == MessageType.POST) {
+                GlobalScope.launch { // send approve
+                    message.verificationTag?.run {
+                        sendMessage(sender, NetworkMessage(MessageType.APPROVE, this))
+                    }
+                }
+            }
             message.sender = sender
             val handlers = if (message.isRequest()) requestHandlers else responseHandlers
             for (handler in handlers[message.tag] ?: emptyList()) {
