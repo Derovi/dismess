@@ -67,14 +67,14 @@ class NetworkService(
     suspend fun sendMessage(address: InetSocketAddress, message: NetworkMessage, timeout: Long = 1000): NetworkMessage? {
         message.verificationTag = randomTag()
         networkInterface.sendRawMessage(address, klaxon.toJsonString(message).toByteArray())
-        return waitForAMessage(message.verificationTag!!, timeout)
+        return waitForAResponse(message.verificationTag!!, timeout)
     }
 
     /**
      * Waits for a message, but
      * returns null if timeout
      */
-    suspend fun waitForAMessage(tag: String, timeout: Long = 1000L): NetworkMessage? {
+    private suspend fun waitForAResponse(tag: String, timeout: Long = 1000L): NetworkMessage? {
         var handler: MessageHandler? = null
         val result = withTimeoutOrNull<NetworkMessage>(timeout) {
             suspendCoroutine { continuation ->

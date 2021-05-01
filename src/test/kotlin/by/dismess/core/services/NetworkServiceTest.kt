@@ -24,13 +24,13 @@ class NetworkServiceTest : KoinTest {
                 single { NetworkService(get()) }
                 single<NetworkInterface> {
                     object : NetworkInterface {
-                        private lateinit var receiver: (sender: InetAddress, data: ByteArray) -> Unit
+                        private lateinit var receiver: (sender: InetSocketAddress, data: ByteArray) -> Unit
 
                         override suspend fun sendRawMessage(address: InetSocketAddress, data: ByteArray) {
-                            receiver(address.address, data)
+                            receiver(address, data)
                         }
 
-                        override fun setMessageReceiver(receiver: (sender: InetAddress, data: ByteArray) -> Unit) {
+                        override fun setMessageReceiver(receiver: (sender: InetSocketAddress, data: ByteArray) -> Unit) {
                             this.receiver = receiver
                         }
                     }
