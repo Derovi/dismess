@@ -14,7 +14,7 @@ class StorageService(
         }
         storageInterface.saveRawData(key, save.toByteArray())
     }
-    suspend inline fun <reified T> load(key: String) =
+    suspend inline fun <reified T> load(key: String): T? =
         storageInterface.loadRawData(key) ?.let {
             val data = String(it)
             when (T::class) {
@@ -27,7 +27,7 @@ class StorageService(
                 Byte::class -> data.toByte()
                 else -> klaxon.parse<T>(data)
             }
-        }
+        } as T?
     suspend fun saveRaw(key: String, data: String) {
         storageInterface.saveRawData(key, data.toByteArray())
     }
