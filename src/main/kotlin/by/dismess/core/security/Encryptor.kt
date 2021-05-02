@@ -1,6 +1,5 @@
 package by.dismess.core.security
 
-import by.dismess.core.utils.byteToInt
 import by.dismess.core.utils.intToBytes
 import by.dismess.core.utils.twoBytesToInt
 import java.security.Key
@@ -23,6 +22,7 @@ const val MAX_OFFSET = (KEY_SIZE - AES_SIZE * 8) / 8
 class Encryptor {
     private var keyAgreement: KeyAgreement = KeyAgreement.getInstance("DH")
     private val keyPairGenerator: KeyPairGenerator = KeyPairGenerator.getInstance("DH")
+    private val keyFactory = KeyFactory.getInstance("DH")
     private var aesReceiveOffset: Int = 0
     private var aesSendOffset: Int = 0
     private val cipherAlgo: String = "AES"
@@ -38,23 +38,23 @@ class Encryptor {
         return SecretKeySpec(aesKey, aesOffset, AES_SIZE, cipherAlgo)
     }
 
-    private fun findSession(sessionNumber: Int): ByteArray? {
+    private fun findSessionKey(sessionNumber: Int): ByteArray {
         for (session in aesKeys) {
             if (session.first == sessionNumber) {
                 return session.second
             }
         }
-        return null
+        throw IllegalArgumentException("invalid key")
     }
 
-    private fun cipherKey(aesOffset: Int, key: ByteArray): Key? {
+    private fun cipherKey(aesOffset: Int, key: ByteArray): Key {
         val sessionNumber: Int = twoBytesToInt(key.sliceArray(0..2)) % (2 shl 16)
-        val sessionKey = findSession(sessionNumber) ?: return null
+        val sessionKey = findSessionKey(sessionNumber)
         return generateCipherKey(sessionKey, aesOffset)
     }
 
-    private fun currentCipherKey(aesOffset: Int): Key? {
-        val sessionKey = findSession(currentSession) ?: return null
+    private fun currentCipherKey(aesOffset: Int): Key {
+        val sessionKey = findSessionKey(currentSession)
         return generateCipherKey(sessionKey, aesOffset)
     }
 
@@ -103,8 +103,7 @@ class Encryptor {
         var bytePublicKey = Base64.getDecoder().decode(key)
         currentSession = twoBytesToInt(bytePublicKey.sliceArray(0..1))
         bytePublicKey = bytePublicKey.sliceArray(2 until bytePublicKey.size)
-        val factory = KeyFactory.getInstance("DH")
-        val anotherKey = factory.generatePublic(X509EncodedKeySpec(bytePublicKey)) as DHPublicKey
+        val anotherKey = keyFactory.generatePublic(X509EncodedKeySpec(bytePublicKey)) as DHPublicKey
         keyAgreement.doPhase(anotherKey, true)
         addNewSession()
     }
@@ -115,7 +114,7 @@ class Encryptor {
      * @return next offset + message
      */
     fun encrypt(message: ByteArray): ByteArray {
-        val key: Key = currentCipherKey(aesSendOffset) ?: return byteArrayOf()
+        val key: Key = currentCipherKey(aesSendOffset)
         val cipher: Cipher = Cipher.getInstance(cipherAlgo)
         cipher.init(Cipher.ENCRYPT_MODE, key)
         aesSendOffset = generateOffset()
@@ -131,12 +130,12 @@ class Encryptor {
      */
     fun decrypt(message: ByteArray): ByteArray {
         val decodedValue: ByteArray = Base64.getDecoder().decode(message)
-        val key: Key = cipherKey(aesReceiveOffset, decodedValue) ?: return byteArrayOf()
+        val key: Key = cipherKey(aesReceiveOffset, decodedValue)
         val cipher: Cipher = Cipher.getInstance(cipherAlgo)
         cipher.init(Cipher.DECRYPT_MODE, key)
         val result = cipher.doFinal(decodedValue.sliceArray(2 until decodedValue.size))
         val offset = result[0]
-        aesReceiveOffset = byteToInt(offset)
+        aesReceiveOffset = offset.toInt()
         return result.sliceArray(1 until result.size)
     }
 }

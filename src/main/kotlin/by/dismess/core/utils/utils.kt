@@ -14,10 +14,6 @@ fun generateUserID(login: String): UserID {
     return UserID(hashMD5(login))
 }
 
-fun byteToInt(number: Byte): Int {
-    return number.toInt()
-}
-
 fun twoBytesToInt(number: ByteArray): Int {
     return (number[0].toInt() and 0xff shl 8) or
         (number[1].toInt() and 0xff)

@@ -2,7 +2,7 @@ package by.dismess.core.security
 
 import java.net.InetSocketAddress
 
-const val KEY_LIFETIME = 60000
+const val KEY_LIFETIME_MS = 60000
 
 class SessionManager {
     private val addressToProtocolManager = mutableMapOf<InetSocketAddress, ProtocolManager>()
@@ -21,7 +21,7 @@ class SessionManager {
             addressToProtocolManager[address] = protocolManager
             return protocolManager.updateKey()
         }
-        if (now - protocolManager.lastUpdateTime > KEY_LIFETIME) {
+        if (now - protocolManager.lastUpdateTime > KEY_LIFETIME_MS) {
             return protocolManager.updateKey()
         }
         return null
@@ -32,7 +32,7 @@ class SessionManager {
     }
 
     /**
-     * Process message if it is a key or raw message, create new session if needed
+     * Process message. If it is a key or raw message, create new session if needed
      * @return decrypted message, null if key was passed
      */
     fun processData(address: InetSocketAddress, data: ByteArray): TypedData {

@@ -12,8 +12,6 @@ import java.net.InetSocketAddress
 class SecureNetworkInterfaceTest : KoinTest {
     private lateinit var firstReturn: ByteArray
     private var firstCounter: Int = 0
-    private lateinit var secondReturn: ByteArray
-    private var secondCounter: Int = 0
 
     class MockNetworkInterface : NetworkInterface {
         lateinit var receiver: (sender: InetAddress, data: ByteArray) -> Unit

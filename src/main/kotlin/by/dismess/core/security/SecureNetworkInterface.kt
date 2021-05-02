@@ -3,6 +3,7 @@ package by.dismess.core.security
 import by.dismess.core.outer.NetworkInterface
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
+import java.lang.IllegalArgumentException
 import java.net.InetAddress
 import java.net.InetSocketAddress
 
@@ -38,34 +39,48 @@ class SecureNetworkInterface(
         return InetSocketAddress(1)
     }
 
+    private fun processData(
+        sender: InetAddress,
+        data: ByteArray,
+        receiver: (sender: InetAddress, data: ByteArray) -> Unit
+    ) {
+        val senderSocketAddress = inetAddressToInetSocketAddress(sender)
+        val response: TypedData = sessionManager.processData(senderSocketAddress, data)
+        when (response.type) {
+            DataType.MESSAGE -> {
+                receiver(sender, response.data)
+            }
+            DataType.SEND_BACK_KEY -> {
+                GlobalScope.launch {
+                    networkInterface.sendRawMessage(senderSocketAddress, response.data)
+                }
+            }
+            DataType.KEY -> {
+                GlobalScope.launch {
+                    sessionManager.release(senderSocketAddress)
+                }
+            }
+        }
+    }
+
     override suspend fun sendRawMessage(address: InetSocketAddress, data: ByteArray) {
         val updatedKey = tryUpdateKey(address)
         if (updatedKey != null) {
             networkInterface.sendRawMessage(address, updatedKey)
             sessionManager.block(address)
         }
-        val encryptedMessage = sessionManager.encrypt(address, data)
-        networkInterface.sendRawMessage(address, encryptedMessage)
+        try {
+            val encryptedMessage = sessionManager.encrypt(address, data)
+            networkInterface.sendRawMessage(address, encryptedMessage)
+        } catch (_: IllegalArgumentException) {
+        }
     }
 
     override fun setMessageReceiver(receiver: (sender: InetAddress, data: ByteArray) -> Unit) {
         networkInterface.setMessageReceiver { sender: InetAddress, data: ByteArray ->
-            val senderSocketAddress = inetAddressToInetSocketAddress(sender)
-            val response: TypedData = sessionManager.processData(senderSocketAddress, data)
-            when (response.type) {
-                DataType.MESSAGE -> {
-                    receiver(sender, response.data)
-                }
-                DataType.SEND_BACK_KEY -> {
-                    GlobalScope.launch {
-                        networkInterface.sendRawMessage(senderSocketAddress, response.data)
-                    }
-                }
-                DataType.KEY -> {
-                    GlobalScope.launch {
-                        sessionManager.release(senderSocketAddress)
-                    }
-                }
+            try {
+                processData(sender, data, receiver)
+            } catch (_: IllegalArgumentException) {
             }
         }
     }
