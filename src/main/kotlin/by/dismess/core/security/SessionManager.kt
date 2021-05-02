@@ -32,8 +32,11 @@ class SessionManager {
     }
 
     /**
-     * Process message. If it is a key or raw message, create new session if needed
-     * @return decrypted message, null if key was passed
+     * Define protocol manager for passed address, creates new if needed.
+     * Forward data to defined protocol manager
+     * @return TypedData:
+     * type - whether data is a message, key with request to send it back or simple key,
+     * data - processed data
      */
     fun processData(address: InetSocketAddress, data: ByteArray): TypedData {
         var protocolManager: ProtocolManager? = addressToProtocolManager[address]
