@@ -6,6 +6,7 @@ import by.dismess.core.network.NetworkMessage
 import by.dismess.core.outer.NetworkInterface
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withTimeoutOrNull
 import java.net.InetSocketAddress
 import java.util.UUID
@@ -79,11 +80,17 @@ class NetworkService(
     suspend fun sendPost(address: InetSocketAddress, tag: String, data: Any, timeout: Long = 1000): Boolean =
         sendPost(address, tag, klaxon.toJsonString(data), timeout)
 
+    suspend fun sendPost(address: InetSocketAddress, tag: String, timeout: Long = 1000): Boolean =
+        sendRequest(address, NetworkMessage(MessageType.POST, tag), timeout) != null
+
     suspend fun sendPost(address: InetSocketAddress, tag: String, data: String, timeout: Long = 1000): Boolean =
         sendRequest(address, NetworkMessage(MessageType.POST, tag, data), timeout) != null
 
     suspend fun sendGet(address: InetSocketAddress, tag: String, data: Any, timeout: Long = 1000): String? =
         sendGet(address, tag, klaxon.toJsonString(data), timeout)
+
+    suspend fun sendGet(address: InetSocketAddress, tag: String, timeout: Long = 1000): String? =
+        sendRequest(address, NetworkMessage(MessageType.GET, tag), timeout)?.data
 
     suspend fun sendGet(address: InetSocketAddress, tag: String, data: String, timeout: Long = 1000): String? =
         sendRequest(address, NetworkMessage(MessageType.GET, tag, data), timeout)?.data
@@ -94,31 +101,26 @@ class NetworkService(
 
     suspend fun sendRequest(address: InetSocketAddress, message: NetworkMessage, timeout: Long = 1000): NetworkMessage? {
         message.verificationTag = randomTag()
-        networkInterface.sendRawMessage(address, klaxon.toJsonString(message).toByteArray())
-        return waitForAResponse(message.verificationTag!!, timeout)
+        var handler: ResponseHandler? = null
+
+        val result = withTimeoutOrNull<NetworkMessage>(timeout) {
+            suspendCancellableCoroutine { continuation ->
+                handler = { message: NetworkMessage ->
+                    continuation.resume(message)
+                }.also { responseHandlers.getOrPut(message.verificationTag!!) { mutableListOf() }.add(it) }
+                GlobalScope.launch {
+                    networkInterface.sendRawMessage(address, klaxon.toJsonString(message).toByteArray())
+                }
+            }
+        }
+        responseHandlers[message.verificationTag]?.remove(handler)
+        return result
     }
 
     suspend fun sendResponse(address: InetSocketAddress, message: NetworkMessage) {
         networkInterface.sendRawMessage(address, klaxon.toJsonString(message).toByteArray())
     }
 
-    /**
-     * Waits for a message, but
-     * returns null if timeout
-     */
-    private suspend fun waitForAResponse(tag: String, timeout: Long = 1000L): NetworkMessage? {
-        var handler: ResponseHandler? = null
-
-        val result = withTimeoutOrNull<NetworkMessage>(timeout) {
-            suspendCoroutine { continuation ->
-                handler = { message: NetworkMessage ->
-                    continuation.resume(message)
-                }.also { responseHandlers.getOrPut(tag) { mutableListOf() }.add(it) }
-            }
-        }
-        responseHandlers[tag]?.remove(handler)
-        return result
-    }
     inner class GetContext(val target: InetSocketAddress, val verificationTag: String?) {
         suspend fun result(data: String) {
             if (verificationTag != null) {
