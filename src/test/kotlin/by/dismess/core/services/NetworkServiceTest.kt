@@ -1,7 +1,6 @@
 package by.dismess.core.services
 
 import by.dismess.core.outer.NetworkInterface
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert
 import org.junit.Test

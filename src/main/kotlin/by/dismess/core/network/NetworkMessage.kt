@@ -1,7 +1,6 @@
 package by.dismess.core.network
 
 import com.beust.klaxon.Json
-import java.net.InetAddress
 import java.net.InetSocketAddress
 
 enum class MessageType {

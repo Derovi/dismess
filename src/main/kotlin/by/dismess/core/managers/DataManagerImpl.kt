@@ -36,6 +36,6 @@ class DataManagerImpl(
     override suspend fun saveLastIP(userID: UserID, ip: InetSocketAddress): Unit =
         storageService.save(DataManager.Keys.LAST_IP_PREF + userID, ip)
 
-    override suspend fun getLastIP(userID: UserID): InetSocketAddress?  =
+    override suspend fun getLastIP(userID: UserID): InetSocketAddress? =
         storageService.load(DataManager.Keys.LAST_IP_PREF + userID)
 }

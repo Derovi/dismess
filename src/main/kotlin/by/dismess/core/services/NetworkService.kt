@@ -11,7 +11,6 @@ import kotlinx.coroutines.withTimeoutOrNull
 import java.net.InetSocketAddress
 import java.util.UUID
 import kotlin.coroutines.resume
-import kotlin.coroutines.suspendCoroutine
 
 /**
  * NetworkService is an implementation of L7 Dismess protocol
@@ -99,7 +98,7 @@ class NetworkService(
      * Returns response if request delivered successfully, null if not
      */
 
-    suspend fun sendRequest(address: InetSocketAddress, message: NetworkMessage, timeout: Long = 1000): NetworkMessage? {
+    private suspend fun sendRequest(address: InetSocketAddress, message: NetworkMessage, timeout: Long = 1000): NetworkMessage? {
         message.verificationTag = randomTag()
         var handler: ResponseHandler? = null
 
@@ -117,7 +116,7 @@ class NetworkService(
         return result
     }
 
-    suspend fun sendResponse(address: InetSocketAddress, message: NetworkMessage) {
+    private suspend fun sendResponse(address: InetSocketAddress, message: NetworkMessage) {
         networkInterface.sendRawMessage(address, klaxon.toJsonString(message).toByteArray())
     }
 
