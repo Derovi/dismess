@@ -1,5 +1,6 @@
 package by.dismess.core.dht
 
+import by.dismess.core.klaxon
 import by.dismess.core.model.UserID
 import by.dismess.core.services.NetworkService
 import by.dismess.core.services.StorageService
@@ -13,16 +14,20 @@ class DHTImpl(
     val storageService: StorageService
 ) : DHT {
     private var usersTable = mutableListOf<Bucket>()
-    private val ownerId: UserID = TODO()
+    private val ownerID: UserID = TODO()
+
+    init {
+        networkService.registerHandler("DHT/Find") {}
+    }
 
     override fun store(key: String, data: ByteArray) {
         TODO("Not yet implemented")
     }
 
-    private fun saveUser(userId: UserID, address: InetSocketAddress) {
+    private fun trySaveUser(userId: UserID, address: InetSocketAddress) {
         val bucket = usersTable.first { it.border.contains(userId.rawID) }
         bucket.idToIP[userId.rawID] = address
-        if (ownerId.rawID inBucket bucket && bucket.idToIP.size > BUCKET_SIZE) {
+        if (ownerID.rawID inBucket bucket && bucket.idToIP.size > BUCKET_SIZE) {
             val bucketBorderMid = (bucket.border.left + bucket.border.right) / BigInteger.TWO
             val leftHalf = Bucket(BucketBorder(bucket.border.left, bucketBorderMid))
             val rightHalf = Bucket(BucketBorder(leftHalf.border.right, bucket.border.right))
@@ -37,10 +42,14 @@ class DHTImpl(
             usersTable.add(bucketInd, rightHalf)
             usersTable.add(bucketInd, leftHalf)
             usersTable.remove(bucket)
+        } else if (!ownerID.rawID inBucket bucket && bucket.idToIP.size > BUCKET_SIZE) {
+            for (user in bucket.idToIP) {
+                TODO("Ping and remove dead nods")
+            }
         }
     }
 
-    private fun getBucket(userId: UserID): Bucket {
+    private fun getBucketWithUser(userId: UserID): Bucket {
         return usersTable.first { userId.rawID inBucket it }
     }
 
@@ -49,22 +58,11 @@ class DHTImpl(
         count: Int,
         maxDistance: BigInteger
     ): MutableMap<UserID, InetSocketAddress> {
-        var listOfNodes = getBucket(target).idToIP.entries.toMutableList()
+        TODO()
+    }
 
-        do {
-            for (node in listOfNodes) {
-                networkService.sendMessage(node.value, TODO("Tag for find request"), TODO("Args"))
-                saveUser(TODO("UserID from response"), TODO("User address from response"))
-                listOfNodes.addAll(TODO("Response"))
-            }
-            listOfNodes = listOfNodes.filter { it.key xor target.rawID <= maxDistance } as
-                    MutableList<MutableMap.MutableEntry<BigInteger, InetSocketAddress>>
-        } while (listOfNodes.size < count)
-
-        listOfNodes = listOfNodes.take(count) as MutableList<MutableMap.MutableEntry<BigInteger, InetSocketAddress>>
-        var foundedNodes = mutableMapOf<UserID, InetSocketAddress>()
-        listOfNodes.map { foundedNodes[TODO("Cast it.key, that has BitInteger type, to UserID")] = it.value }
-        return foundedNodes
+    fun findUser(target: UserID) {
+        var potentialBucket = getBucketWithUser(target)
     }
 
     override fun retrieve(key: String): ByteArray {
