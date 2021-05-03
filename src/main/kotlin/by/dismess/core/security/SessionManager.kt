@@ -27,9 +27,8 @@ class SessionManager {
         return null
     }
 
-    fun encrypt(address: InetSocketAddress, data: ByteArray): ByteArray {
-        return addressToProtocolManager.getValue(address).encrypt(data)
-    }
+    fun encrypt(address: InetSocketAddress, data: ByteArray): ByteArray =
+        addressToProtocolManager.getValue(address).encrypt(data)
 
     /**
      * Define protocol manager for passed address, creates new if needed.

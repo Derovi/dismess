@@ -31,9 +31,7 @@ class SecureNetworkInterface(
 ) : NetworkInterface {
     private val sessionManager: SessionManager = SessionManager()
 
-    private fun tryUpdateKey(address: InetSocketAddress): ByteArray? {
-        return sessionManager.tryUpdateKey(address)
-    }
+    private fun tryUpdateKey(address: InetSocketAddress): ByteArray? = sessionManager.tryUpdateKey(address)
 
     private fun inetAddressToInetSocketAddress(address: InetAddress): InetSocketAddress {
         return InetSocketAddress(1)

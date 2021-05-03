@@ -26,7 +26,7 @@ class Encryptor {
     private var aesReceiveOffset: Int = 0
     private var aesSendOffset: Int = 0
     private val cipherAlgo: String = "AES"
-    private var aesKeys: List<Pair<Int, ByteArray>> = mutableListOf()
+    private var aesKeys: MutableList<Pair<Int, ByteArray>> = mutableListOf()
     private lateinit var publicKey: PublicKey
     private var currentSession: Int = 0
 
@@ -34,9 +34,8 @@ class Encryptor {
         keyPairGenerator.initialize(KEY_SIZE)
     }
 
-    private fun generateCipherKey(aesKey: ByteArray, aesOffset: Int): Key {
-        return SecretKeySpec(aesKey, aesOffset, AES_SIZE, cipherAlgo)
-    }
+    private fun generateCipherKey(aesKey: ByteArray, aesOffset: Int): Key =
+        SecretKeySpec(aesKey, aesOffset, AES_SIZE, cipherAlgo)
 
     private fun findSessionKey(sessionNumber: Int): ByteArray {
         for (session in aesKeys) {
@@ -48,7 +47,7 @@ class Encryptor {
     }
 
     private fun cipherKey(aesOffset: Int, key: ByteArray): Key {
-        val sessionNumber: Int = twoBytesToInt(key.sliceArray(0..2)) % (2 shl 16)
+        val sessionNumber: Int = twoBytesToInt(byteArrayOf(key[0], key[1])) % (2 shl 16)
         val sessionKey = findSessionKey(sessionNumber)
         return generateCipherKey(sessionKey, aesOffset)
     }
@@ -62,9 +61,7 @@ class Encryptor {
      * Generate random number in range from 0 to max offset position
      * @return new offset
      */
-    private fun generateOffset(): Int {
-        return (0..MAX_OFFSET).random()
-    }
+    private fun generateOffset(): Int = (0 until MAX_OFFSET).random()
 
     /**
      * Create new session and drop old sessions
@@ -72,16 +69,16 @@ class Encryptor {
     private fun addNewSession() {
         val newKey = keyAgreement.generateSecret()
         if (aesKeys.size >= MAX_SESSIONS_SIZE) {
-            aesKeys = aesKeys.drop(1)
+            aesKeys.removeAt(0)
         }
-        aesKeys = aesKeys + Pair<Int, ByteArray>(currentSession, newKey)
+        aesKeys.add(Pair<Int, ByteArray>(currentSession, newKey))
     }
 
     fun publicKeyBytes(updateSession: Boolean): ByteArray {
         val bytePublicKey = publicKey.encoded
         var session = currentSession
         if (updateSession) {
-            session += 1
+            ++session
         }
         return Base64.getEncoder().encode(intToBytes(session, SESSION_NUMBER_SIZE) + bytePublicKey)
     }

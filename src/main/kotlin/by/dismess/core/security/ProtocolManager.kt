@@ -14,9 +14,7 @@ class ProtocolManager {
     var lastUpdateTime = System.currentTimeMillis()
     val channel: Channel<Unit> = Channel()
 
-    private fun decrypt(data: ByteArray): ByteArray {
-        return encryptor.decrypt(data)
-    }
+    private fun decrypt(data: ByteArray): ByteArray = encryptor.decrypt(data)
 
     private fun processKey(data: ByteArray): TypedData {
         val order = data[0]
@@ -44,9 +42,7 @@ class ProtocolManager {
     /**
      * @return 0 byte joined with encrypted message
      */
-    fun encrypt(data: ByteArray): ByteArray {
-        return byteArrayOf(0) + encryptor.encrypt(data)
-    }
+    fun encrypt(data: ByteArray): ByteArray = byteArrayOf(0) + encryptor.encrypt(data)
 
     /**
      * Decide which type of message received: key or raw message and run appropriate handlers
