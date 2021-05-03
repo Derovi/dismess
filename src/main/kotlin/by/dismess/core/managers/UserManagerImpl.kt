@@ -1,8 +1,10 @@
 package by.dismess.core.managers
 
 import by.dismess.core.dht.DHT
+import by.dismess.core.klaxon
 import by.dismess.core.model.User
 import by.dismess.core.model.UserID
+import by.dismess.core.network.MessageType
 import by.dismess.core.network.NetworkMessage
 import by.dismess.core.services.NetworkService
 
@@ -15,27 +17,42 @@ class UserManagerImpl(
         const val TIMEOUT = 1000
     }
 
-    /**
-     * Send message to user
-     * 1) Returns true if successfully, false if not
-     * 2) userStatusChanged callback allows to catch request to dht
-     */
-    override suspend fun sendNetworkMessage(
-        userID: UserID,
+    override suspend fun sendPost(target: UserID, tag: String, data: Any, timeout: Long): Boolean =
+        sendPost(target, tag, klaxon.toJsonString(data), timeout)
+
+    override suspend fun sendPost(target: UserID, tag: String, timeout: Long): Boolean =
+        sendRequest(target, NetworkMessage(MessageType.POST, tag), timeout) != null
+
+    override suspend fun sendPost(target: UserID, tag: String, data: String, timeout: Long): Boolean =
+        sendRequest(target, NetworkMessage(MessageType.POST, tag, data), timeout) != null
+
+    override suspend fun sendGet(target: UserID, tag: String, data: Any, timeout: Long): String? =
+        sendGet(target, tag, klaxon.toJsonString(data), timeout)
+
+    override suspend fun sendGet(target: UserID, tag: String, timeout: Long): String? =
+        sendRequest(target, NetworkMessage(MessageType.GET, tag), timeout)?.data
+
+    override suspend fun sendGet(target: UserID, tag: String, data: String, timeout: Long): String? =
+        sendRequest(target, NetworkMessage(MessageType.GET, tag, data), timeout)?.data
+
+    private suspend fun sendRequest(
+        target: UserID,
         message: NetworkMessage,
-        userStatusChanged: ((UserStatus) -> Unit)?
-    ): Boolean {
-        TODO("Not implemented on this branch")
-//        dataManager.getLastIP(userID) ?.also { savedIP ->
-//            if (networkService.sendPost(savedIP, message)) {
-//                return true
-//            }
-//        }
-//        userStatusChanged?.invoke(UserStatus.RETRIEVING_IP)
-//        // online of successfully responsed
-//        val newAddress = dht.find(userID) // try to find new address
-//        dataManager.saveLastIP(userID, newAddress)
-//        return networkService.sendPost(newAddress, message)
+        timeout: Long = 1000
+    ): NetworkMessage? {
+        val savedIP = dataManager.getLastIP(target)
+        if (savedIP != null) {
+            val result = networkService.sendRequest(savedIP, message, timeout)
+            if (result != null) {
+                return result
+            }
+        }
+        val newAddress = dht.find(target) // try to find new address
+        if (newAddress == savedIP) {
+            return null
+        }
+        dataManager.saveLastIP(target, newAddress)
+        return networkService.sendRequest(newAddress, message, timeout)
     }
 
     override suspend fun isOnline(userId: UserID): Boolean =

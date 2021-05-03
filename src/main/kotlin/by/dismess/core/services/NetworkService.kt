@@ -98,7 +98,7 @@ class NetworkService(
      * Returns response if request delivered successfully, null if not
      */
 
-    private suspend fun sendRequest(address: InetSocketAddress, message: NetworkMessage, timeout: Long = 1000): NetworkMessage? {
+    internal suspend fun sendRequest(address: InetSocketAddress, message: NetworkMessage, timeout: Long = 1000): NetworkMessage? {
         message.verificationTag = randomTag()
         var handler: ResponseHandler? = null
 
