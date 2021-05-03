@@ -13,8 +13,9 @@ class UserManagerImpl(
     val networkService: NetworkService,
     val dataManager: DataManager
 ) : UserManager {
-    companion object {
-        const val TIMEOUT = 1000
+
+    init {
+        networkService.registerPost("user/ping") {}
     }
 
     override suspend fun sendPost(target: UserID, tag: String, data: Any, timeout: Long): Boolean =
@@ -56,8 +57,7 @@ class UserManagerImpl(
     }
 
     override suspend fun isOnline(userId: UserID): Boolean =
-        TODO("Not implemented on this branch")
-    // sendNetworkMessage(userId, NetworkMessage("null", ""))
+        sendPost(userId, "user/ping", userId)
 
     override suspend fun retrieveUser(userId: UserID): User {
         TODO("Not yet implemented")
