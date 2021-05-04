@@ -126,6 +126,11 @@ class NetworkService(
                 sendResponse(target, NetworkMessage(MessageType.RESULT, verificationTag, data))
             }
         }
+        suspend fun result(data: Any) {
+            if (verificationTag != null) {
+                sendResponse(target, NetworkMessage(MessageType.RESULT, verificationTag, klaxon.toJsonString(data)))
+            }
+        }
     }
 
     companion object {

@@ -22,8 +22,8 @@ interface DataManager {
     suspend fun saveAvatar(avatar: ImageAttachment)
     suspend fun getAvatar(): ImageAttachment?
 
-    suspend fun saveMyIP(ip: InetSocketAddress)
-    suspend fun getMyIP(): InetSocketAddress?
+    suspend fun setOwnIP(ip: InetSocketAddress)
+    suspend fun getOwnIP(): InetSocketAddress?
 
     suspend fun saveLastIP(userID: UserID, ip: InetSocketAddress)
     suspend fun getLastIP(userID: UserID): InetSocketAddress?

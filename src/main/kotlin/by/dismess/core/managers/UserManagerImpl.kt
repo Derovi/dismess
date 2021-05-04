@@ -4,6 +4,7 @@ import by.dismess.core.dht.DHT
 import by.dismess.core.klaxon
 import by.dismess.core.model.User
 import by.dismess.core.model.UserID
+import by.dismess.core.model.attachments.ImageAttachment
 import by.dismess.core.network.MessageType
 import by.dismess.core.network.NetworkMessage
 import by.dismess.core.services.NetworkService
@@ -16,6 +17,15 @@ class UserManagerImpl(
 
     init {
         networkService.registerPost("user/ping") {}
+        networkService.registerGet("user/retrieve") {
+            result(
+                User(
+                    dataManager.getLogin()!!,
+                    dataManager.getDisplayName(),
+                    dataManager.getAvatar()
+                )
+            )
+        }
     }
 
     override suspend fun sendPost(target: UserID, tag: String, data: Any, timeout: Long): Boolean =
@@ -60,10 +70,11 @@ class UserManagerImpl(
         sendPost(userId, "user/ping", userId)
 
     override suspend fun retrieveUser(userId: UserID): User? {
-        sendGet
+        val user = sendGet(userId, "user/retrieve")?.run { klaxon.parse<User>(this) }
+        user?.lastIP = dataManager.getLastIP(userId)
+        return user
     }
 
-    override suspend fun retrieveUserNoAvatar(userId: UserID): User? {
-        TODO("Not yet implemented")
-    }
+    override suspend fun retrieveAvatar(userId: UserID): ImageAttachment? =
+        sendGet(userId, "user/avatar")?.run { klaxon.parse<ImageAttachment>(this) }
 }
