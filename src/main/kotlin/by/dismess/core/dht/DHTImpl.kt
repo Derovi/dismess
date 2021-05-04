@@ -4,10 +4,12 @@ import by.dismess.core.klaxon
 import by.dismess.core.model.UserID
 import by.dismess.core.services.NetworkService
 import by.dismess.core.services.StorageService
-import java.math.BigInteger
 import java.net.InetSocketAddress
+import java.util.*
 
 const val BUCKET_SIZE = 8
+const val PING_TIMER = 10 * 60000
+const val MAX_FIND_ITERATIONS = 100
 
 class DHTImpl(
     val networkService: NetworkService,
@@ -18,10 +20,11 @@ class DHTImpl(
 
     init {
         networkService.registerGet("DHT/Find") { message ->
-            val request = klaxon.parse<FindRequest>(message.data!!)
-            tryToSaveUser(request!!.sender, message.sender)
-            val bucket = getBucketWithUser(request.targetUser)
+            val data = message.data ?: return@registerGet
+            val request = klaxon.parse<FindRequest>(data) ?: return@registerGet
+            val bucket = getUserBucket(request.targetUser)
             val response = klaxon.toJsonString(bucket)
+            trySaveUser(request.sender, message.sender)
             result(response)
         }
         networkService.registerPost("DHT/Ping") {}
@@ -31,66 +34,75 @@ class DHTImpl(
         TODO("Not yet implemented")
     }
 
-    private suspend fun tryToSaveUser(userId: UserID, address: InetSocketAddress) {
+    private suspend fun pingBucket(bucket: Bucket) {
+        for (user in bucket.idToIP) {
+            if (!networkService.sendPost(user.value, "DHT/Ping")) {
+                bucket.idToIP.remove(user)
+            }
+        }
+        bucket.lastPingTime = System.currentTimeMillis()
+    }
+
+    private suspend fun trySaveUser(userId: UserID, address: InetSocketAddress) {
         val bucket = usersTable.first { it.border.contains(userId.rawID) }
-        bucket.idToIP[userId] = address
-        if (ownerID inBucket bucket && bucket.idToIP.size > BUCKET_SIZE) {
-            val bucketBorderMid = (bucket.border.left + bucket.border.right) / BigInteger.TWO
-            val leftHalf = Bucket(BucketBorder(bucket.border.left, bucketBorderMid))
-            val rightHalf = Bucket(BucketBorder(leftHalf.border.right, bucket.border.right))
-            bucket.idToIP.map {
-                when {
-                    it.key inBucket leftHalf -> leftHalf.idToIP.put(it.key, it.value)
-                    it.key inBucket rightHalf -> rightHalf.idToIP.put(it.key, it.value)
-                    else -> Unit
-                }
-            }
-            val bucketInd = usersTable.indexOf(bucket)
-            usersTable.add(bucketInd, rightHalf)
-            usersTable.add(bucketInd, leftHalf)
-            usersTable.remove(bucket)
-        } else if (!(ownerID inBucket bucket) && bucket.idToIP.size > BUCKET_SIZE) {
-            for (user in bucket.idToIP) {
-                if (!networkService.sendPost(user.value, "DHT/Ping")) {
-                    bucket.idToIP.remove(user)
-                }
-            }
+
+        if (bucket.idToIP.containsKey(userId)) {
+            return
+        }
+
+        if (System.currentTimeMillis() - bucket.lastPingTime > PING_TIMER) {
+            pingBucket(bucket)
+        }
+
+        if (ownerID inBucket bucket) {
+            bucket.idToIP[userId] = address
             if (bucket.idToIP.size > BUCKET_SIZE) {
-                TODO("Remove old nodes")
+                val splitedBuckets = bucket.split()
+                val bucketInd = usersTable.indexOf(bucket)
+                usersTable.add(bucketInd, splitedBuckets.second)
+                usersTable.add(bucketInd, splitedBuckets.first)
+                usersTable.remove(bucket)
             }
+        } else if (bucket.idToIP.size < BUCKET_SIZE) {
+            bucket.idToIP[userId] = address
         }
     }
 
-    private fun getBucketWithUser(userId: UserID): Bucket {
-        return usersTable.first { userId inBucket it }
-    }
+    private fun getUserBucket(userId: UserID): Bucket = usersTable.first { userId inBucket it }
 
-    private suspend fun findNearestNodes(target: UserID): MutableMap<UserID, InetSocketAddress> {
-        var distance = ownerID distanceTo target
-        var usersBuffer = getBucketWithUser(target).idToIP
+    private suspend fun findNearestNodes(target: UserID, count: Int): MutableMap<UserID, InetSocketAddress> {
+        val nearestUsers = getUserBucket(target).idToIP
         var findIterations = 0
 
-        while (findIterations < 100 || usersBuffer.size > 1) {
-            val newBuffer = mutableMapOf<UserID, InetSocketAddress>()
-            for (user in usersBuffer) {
+        val mapComparator = kotlin.Comparator { firstUser: UserID, secondUser: UserID ->
+            when {
+                firstUser distanceTo target < secondUser distanceTo target -> return@Comparator -1
+                firstUser distanceTo target > secondUser distanceTo target -> return@Comparator 1
+                else -> return@Comparator 0
+            }
+        }
+
+        while (findIterations < MAX_FIND_ITERATIONS) {
+            val buffer = TreeMap<UserID, InetSocketAddress>(mapComparator)
+            for (user in nearestUsers) {
                 val request = FindRequest(target, ownerID)
                 val response = networkService.sendGet(user.value, "DHT/Find", request) ?: continue
-                val userBucket = klaxon.parse<Bucket>(response)
-                newBuffer.putAll(userBucket!!.idToIP)
+                val responseBucket = klaxon.parse<Bucket>(response) ?: continue
+                buffer.putAll(responseBucket.idToIP)
             }
-            var newDistance = distance
-            newBuffer.filter {
-                tryToSaveUser(it.key, it.value)
-                val userDistance = it.key distanceTo target
-                newDistance = newDistance.max(userDistance)
-                userDistance <= distance
+            nearestUsers.clear()
+            var counter = 0
+            buffer.forEach {
+                trySaveUser(it.key, it.value)
+                if (counter < count) {
+                    nearestUsers[it.key] = it.value
+                    ++counter
+                }
             }
-            distance = newDistance
-            usersBuffer = newBuffer
             ++findIterations
         }
 
-        return usersBuffer
+        return nearestUsers
     }
 
     override fun retrieve(key: String): ByteArray {
