@@ -1,56 +1,53 @@
 package by.dismess.core.services
 
 import by.dismess.core.outer.NetworkInterface
+import kotlinx.coroutines.runBlocking
 import org.junit.Assert
-import org.junit.Rule
 import org.junit.Test
-import org.koin.dsl.module
 import org.koin.test.KoinTest
-import org.koin.test.KoinTestRule
-import org.koin.test.inject
-import java.net.InetAddress
 import java.net.InetSocketAddress
 
 class NetworkServiceTest : KoinTest {
 
-    private val networkService by inject<NetworkService>()
+    class VirtualNetwork {
+        private val networkInterfaces = mutableMapOf<InetSocketAddress, VirtualNetworkInterface>()
 
-    @get:Rule
-    val koinTestRule = KoinTestRule.create {
-        printLogger()
-        modules(
-            module {
-                single { NetworkService(get()) }
-                single<NetworkInterface> {
-                    object : NetworkInterface {
-                        private lateinit var receiver: (sender: InetAddress, data: ByteArray) -> Unit
+        fun register(networkInterface: VirtualNetworkInterface) {
+            networkInterfaces[networkInterface.ownAddress] = networkInterface
+        }
 
-                        override suspend fun sendRawMessage(address: InetSocketAddress, data: ByteArray) {
-                            receiver(address.address, data)
-                        }
+        fun sendMessage(from: InetSocketAddress, to: InetSocketAddress, data: ByteArray) {
+            networkInterfaces[to]?.receiver?.let { it(from, data) }
+        }
+    }
 
-                        override fun setMessageReceiver(receiver: (sender: InetAddress, data: ByteArray) -> Unit) {
-                            this.receiver = receiver
-                        }
-                    }
-                }
-            }
-        )
+    class VirtualNetworkInterface(val network: VirtualNetwork, val ownAddress: InetSocketAddress) : NetworkInterface {
+        lateinit var receiver: (sender: InetSocketAddress, data: ByteArray) -> Unit
+
+        init {
+            network.register(this)
+        }
+
+        override suspend fun sendRawMessage(address: InetSocketAddress, data: ByteArray) {
+            network.sendMessage(ownAddress, address, data)
+        }
+
+        override fun setMessageReceiver(receiver: (sender: InetSocketAddress, data: ByteArray) -> Unit) {
+            this.receiver = receiver
+        }
     }
 
     @Test
-    fun test() {
-        networkService.registerHandler("test") { Assert.fail() }
-        var visited = false
-        networkService.registerHandler("TEST") {
-            visited = true
-            Assert.assertEquals(it.data, "Hello, world!")
-            Assert.assertEquals(it.tag, "TEST")
-            Assert.assertEquals(it.senderAddress, InetAddress.getByName("123.123.254.4"))
+    fun basicsTest() {
+        val network = VirtualNetwork()
+        val aliceNI = VirtualNetworkInterface(network, InetSocketAddress("127.228.125.1", 1234))
+        val bobNI = VirtualNetworkInterface(network, InetSocketAddress("117.85.32.8", 2231))
+        val aliceNS = NetworkService(aliceNI)
+        val bobNS = NetworkService(bobNI)
+        aliceNS.registerGet("avatar") { message ->
+            Assert.assertEquals(message.sender, bobNI.ownAddress)
+            result("<(^|^)>")
         }
-        networkService.sendMessage(
-            InetSocketAddress("123.123.254.4", 4567), "TEST", "Hello, world!"
-        )
-        Assert.assertTrue(visited)
+        Assert.assertEquals(runBlocking { bobNS.sendGet(aliceNI.ownAddress, "avatar") }, "<(^|^)>")
     }
 }

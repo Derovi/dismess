@@ -6,7 +6,6 @@ import org.junit.Assert
 import org.junit.Test
 import org.koin.test.KoinTest
 import java.lang.Thread.sleep
-import java.net.InetAddress
 import java.net.InetSocketAddress
 
 class SecureNetworkInterfaceTest : KoinTest {
@@ -14,12 +13,12 @@ class SecureNetworkInterfaceTest : KoinTest {
     private var firstCounter: Int = 0
 
     class MockNetworkInterface : NetworkInterface {
-        lateinit var receiver: (sender: InetAddress, data: ByteArray) -> Unit
+        lateinit var receiver: (sender: InetSocketAddress, data: ByteArray) -> Unit
         override suspend fun sendRawMessage(address: InetSocketAddress, data: ByteArray) {
-            receiver(InetAddress.getByName(""), data)
+            receiver(InetSocketAddress(1), data)
         }
 
-        override fun setMessageReceiver(receiver: (sender: InetAddress, data: ByteArray) -> Unit) {
+        override fun setMessageReceiver(receiver: (sender: InetSocketAddress, data: ByteArray) -> Unit) {
             this.receiver = receiver
         }
     }
@@ -27,7 +26,7 @@ class SecureNetworkInterfaceTest : KoinTest {
     private fun init(): SecureNetworkInterface {
         val firstNetworkInterface = MockNetworkInterface()
         val firstSecure = SecureNetworkInterface(firstNetworkInterface)
-        firstSecure.setMessageReceiver { _: InetAddress, data: ByteArray ->
+        firstSecure.setMessageReceiver { _: InetSocketAddress, data: ByteArray ->
             firstReturn = data
             ++firstCounter
         }
@@ -67,10 +66,9 @@ class SecureNetworkInterfaceTest : KoinTest {
         val firstSecure = init()
         firstSecure.setSessionLifetime(10)
         var counter = 0
-        repeat(61000) {
+        repeat(100000) {
             ++counter
             check(firstSecure, counter)
-            sleep(1L)
         }
     }
 }

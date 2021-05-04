@@ -4,7 +4,6 @@ import by.dismess.core.outer.NetworkInterface
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import java.lang.IllegalArgumentException
-import java.net.InetAddress
 import java.net.InetSocketAddress
 
 /**
@@ -33,29 +32,24 @@ class SecureNetworkInterface(
 
     private fun tryUpdateKey(address: InetSocketAddress): ByteArray? = sessionManager.tryUpdateKey(address)
 
-    private fun inetAddressToInetSocketAddress(address: InetAddress): InetSocketAddress {
-        return InetSocketAddress(1)
-    }
-
     private fun processData(
-        sender: InetAddress,
+        sender: InetSocketAddress,
         data: ByteArray,
-        receiver: (sender: InetAddress, data: ByteArray) -> Unit
+        receiver: (sender: InetSocketAddress, data: ByteArray) -> Unit
     ) {
-        val senderSocketAddress = inetAddressToInetSocketAddress(sender)
-        val response: TypedData = sessionManager.processData(senderSocketAddress, data)
+        val response: TypedData = sessionManager.processData(sender, data)
         when (response.type) {
             DataType.MESSAGE -> {
                 receiver(sender, response.data)
             }
             DataType.SEND_BACK_KEY -> {
                 GlobalScope.launch {
-                    networkInterface.sendRawMessage(senderSocketAddress, response.data)
+                    networkInterface.sendRawMessage(sender, response.data)
                 }
             }
             DataType.KEY -> {
                 GlobalScope.launch {
-                    sessionManager.release(senderSocketAddress)
+                    sessionManager.release(sender)
                 }
             }
         }
@@ -74,8 +68,8 @@ class SecureNetworkInterface(
         }
     }
 
-    override fun setMessageReceiver(receiver: (sender: InetAddress, data: ByteArray) -> Unit) {
-        networkInterface.setMessageReceiver { sender: InetAddress, data: ByteArray ->
+    override fun setMessageReceiver(receiver: (sender: InetSocketAddress, data: ByteArray) -> Unit) {
+        networkInterface.setMessageReceiver { sender: InetSocketAddress, data: ByteArray ->
             try {
                 processData(sender, data, receiver)
             } catch (_: IllegalArgumentException) {
