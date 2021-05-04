@@ -59,11 +59,11 @@ class UserManagerImpl(
     override suspend fun isOnline(userId: UserID): Boolean =
         sendPost(userId, "user/ping", userId)
 
-    override suspend fun retrieveUser(userId: UserID): User {
-        TODO("Not yet implemented")
+    override suspend fun retrieveUser(userId: UserID): User? {
+        sendGet
     }
 
-    override suspend fun retrieveUserNoAvatar(userId: UserID): User {
+    override suspend fun retrieveUserNoAvatar(userId: UserID): User? {
         TODO("Not yet implemented")
     }
 }
