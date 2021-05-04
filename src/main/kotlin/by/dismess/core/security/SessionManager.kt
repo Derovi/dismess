@@ -2,10 +2,9 @@ package by.dismess.core.security
 
 import java.net.InetSocketAddress
 
-const val KEY_LIFETIME_MS = 60000
-
-class SessionManager {
+class SessionManager() {
     private val addressToProtocolManager = mutableMapOf<InetSocketAddress, ProtocolManager>()
+    var keyLifetimeMS: Int = 60000
 
     /**
      * Check session lifetime, create new session if needed
@@ -21,7 +20,7 @@ class SessionManager {
             addressToProtocolManager[address] = protocolManager
             return protocolManager.updateKey()
         }
-        if (now - protocolManager.lastUpdateTime > KEY_LIFETIME_MS) {
+        if (now - protocolManager.lastUpdateTime > keyLifetimeMS) {
             return protocolManager.updateKey()
         }
         return null

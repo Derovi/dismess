@@ -56,14 +56,16 @@ class SecureNetworkInterfaceTest : KoinTest {
     @Test
     fun testSessions() {
         val firstSecure = init()
+        firstSecure.setSessionLifetime(10)
         check(firstSecure, 1)
-        sleep(61000L)
+        sleep(100L)
         check(firstSecure, 2)
     }
 
     @Test
     fun testStress() {
         val firstSecure = init()
+        firstSecure.setSessionLifetime(10)
         var counter = 0
         repeat(61000) {
             ++counter

@@ -82,4 +82,8 @@ class SecureNetworkInterface(
             }
         }
     }
+
+    fun setSessionLifetime(time: Int) {
+        sessionManager.keyLifetimeMS = time
+    }
 }
