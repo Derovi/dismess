@@ -11,6 +11,6 @@ fun DHT.store(key: String, data: Any) {
     this.store(key, klaxon.toJsonString(data).toByteArray())
 }
 
-data class FindRequest(val targetUser: UserID, val sender: UserID) {}
+data class FindRequest(val targetUser: UserID, val sender: UserID)
 
 inline fun <reified T> DHT.load(key: String) = klaxon.parse<T>(String(this.retrieve(key)))

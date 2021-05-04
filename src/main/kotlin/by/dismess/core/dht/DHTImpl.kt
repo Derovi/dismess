@@ -5,7 +5,7 @@ import by.dismess.core.model.UserID
 import by.dismess.core.services.NetworkService
 import by.dismess.core.services.StorageService
 import java.net.InetSocketAddress
-import java.util.*
+import java.util.TreeMap
 
 const val BUCKET_SIZE = 8
 const val PING_TIMER = 10 * 60000
