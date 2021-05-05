@@ -11,7 +11,7 @@ infix fun UserID.inBucket(bucket: Bucket) = bucket.border.contains(this.rawID)
 
 infix fun UserID.distanceTo(userID: UserID) = this.rawID xor userID.rawID
 
-infix fun<K, V> MutableMap<K, V>.equalTo(map: MutableMap<K, V>): Boolean {
+infix fun <K, V> MutableMap<K, V>.equalTo(map: MutableMap<K, V>): Boolean {
     if (this.size != map.size) {
         return false
     }
