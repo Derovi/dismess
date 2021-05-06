@@ -106,13 +106,13 @@ class RUDPNetworkInterfaceTest {
 
     private fun findFreePort() = ServerSocket(0).use { it.localPort }
 
-    private fun generateFromTo(): Pair<Int, Int> {
-        val from = (0 until 10).random()
-        var to = (0 until 10).random()
-        while (to == from) {
-            to = (0 until 10).random()
+    private fun generateSenderAndReceiver(): Pair<Int, Int> {
+        val senderInd = (0 until 10).random()
+        var receiverInd = (0 until 10).random()
+        while (receiverInd == senderInd) {
+            receiverInd = (0 until 10).random()
         }
-        return Pair(from, to)
+        return Pair(senderInd, receiverInd)
     }
 
     @Test
@@ -135,14 +135,14 @@ class RUDPNetworkInterfaceTest {
                 val user = RUDPNetworkInterfaceImpl()
                 user.start(sockets[i])
                 user.setMessageReceiver { sender: InetSocketAddress, data: ByteArray ->
-                    var from = 0
+                    var senderInd = 0
                     for (j in 0 until sockets.size) {
                         if (sockets[j].port == sender.port) {
-                            from = j
+                            senderInd = j
                         }
                     }
-                    val message = messages[from][i][0]
-                    messages[from][i].removeAt(0)
+                    val message = messages[senderInd][i][0]
+                    messages[senderInd][i].removeAt(0)
                     Assert.assertArrayEquals(message, data)
                     ++receiveCounter
                     Unit
@@ -150,11 +150,11 @@ class RUDPNetworkInterfaceTest {
                 users.add(user)
             }
             repeat(1000) {
-                val (from, to) = generateFromTo()
+                val (senderInd, receiverInd) = generateSenderAndReceiver()
                 message = ByteArray(200)
                 Random.nextBytes(message)
-                messages[from][to].add(message)
-                send(users[from], sockets[to].port, message)
+                messages[senderInd][receiverInd].add(message)
+                send(users[senderInd], sockets[receiverInd].port, message)
             }
             Assert.assertEquals(receiveCounter, sendCounter)
             Assert.assertNotEquals(receiveCounter, 0)

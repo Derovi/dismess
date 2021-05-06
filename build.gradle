@@ -43,10 +43,3 @@ publishing {
         }
     }
 }
-
-jar {
-    manifest {
-        attributes 'Main-Class': 'MainKt'
-    }
-    from { configurations.compile.collect { it.isDirectory() ? it : zipTree(it) } }
-}
