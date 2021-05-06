@@ -17,7 +17,7 @@ infix fun <K, V> MutableMap<K, V>.equalTo(map: MutableMap<K, V>): Boolean {
     }
 
     this.forEach {
-        if (!map.contains(it.key) && map[it.key] != it.value) {
+        if (!map.contains(it.key) || map[it.key] != it.value) {
             return false
         }
     }

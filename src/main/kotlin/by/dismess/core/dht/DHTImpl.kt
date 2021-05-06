@@ -5,22 +5,32 @@ import by.dismess.core.model.UserID
 import by.dismess.core.services.NetworkService
 import by.dismess.core.services.StorageService
 import by.dismess.core.utils.generateUserID
+import java.math.BigInteger
 import java.net.InetSocketAddress
 import java.util.TreeMap
 
 const val BUCKET_SIZE = 8
 const val PING_TIMER = 10 * 60000
 const val MAX_FIND_ITERATIONS = 100
-const val STORE_COPIES = 10
+const val STORE_COPIES_COUNT = 10
 
 class DHTImpl(
     val networkService: NetworkService,
-    val storageService: StorageService,
-    private val ownerID: UserID
+    val storageService: StorageService
 ) : DHT {
     private var usersTable = mutableListOf<Bucket>()
+    private var ownerID: UserID
+        get() {
+            return ownerID
+        }
+        set(value) {
+            ownerID = value
+        }
+    private var ownerIP: InetSocketAddress = TODO()
 
     init {
+        val bucket = Bucket(BucketBorder(BigInteger.ONE, BigInteger.TWO.pow(160)))
+        bucket.idToIP[ownerID] = ownerIP
         registerGetHandlers()
         registerPostHandlers()
     }
@@ -45,7 +55,7 @@ class DHTImpl(
             result(response)
         }
 
-        networkService.registerGet("DHT/Store") { message ->
+        networkService.registerGet("DHT/Retrieve") { message ->
             val data = message.data ?: return@registerGet
             val key = klaxon.parse<String>(data) ?: return@registerGet
             val responseData = storageService.load<ByteArray>(key)
@@ -107,6 +117,7 @@ class DHTImpl(
         while (findIterations < MAX_FIND_ITERATIONS && !(nearestUsers equalTo previousIterationResult)) {
             val buffer = TreeMap<UserID, InetSocketAddress>(mapComparator)
             for (user in nearestUsers) {
+                if (user.key == ownerID) { continue }
                 val request = FindRequest(target, ownerID)
                 val response = networkService.sendGet(user.value, "DHT/Find", request) ?: continue
                 val responseBucket = klaxon.parse<Bucket>(response) ?: continue
@@ -129,7 +140,7 @@ class DHTImpl(
 
     override suspend fun store(key: String, data: ByteArray) {
         val dataOwner = generateUserID(key)
-        val storingUsers = findNearestNodes(dataOwner, STORE_COPIES)
+        val storingUsers = findNearestNodes(dataOwner, STORE_COPIES_COUNT)
         val request = StoreRequest(key, data)
         for (user in storingUsers) {
             networkService.sendPost(user.value, "DHT/Store", request)
@@ -138,14 +149,18 @@ class DHTImpl(
 
     override suspend fun retrieve(key: String): ByteArray {
         val target = generateUserID(key)
-        val storingUsers = findNearestNodes(target, STORE_COPIES)
+        val storingUsers = findNearestNodes(target, STORE_COPIES_COUNT)
         var data = ByteArray(0)
         for (user in storingUsers) {
-            val response = networkService.sendGet(user.value, "DHT/Store", key) ?: continue
+            val response = networkService.sendGet(user.value, "DHT/Retrieve", key) ?: continue
             data = klaxon.parse<ByteArray>(response) ?: continue
             break
         }
         return data
+    }
+
+    override suspend fun saveUser(userID: UserID, address: InetSocketAddress) {
+        trySaveUser(userID, address)
     }
 
     override suspend fun find(userID: UserID): InetSocketAddress? {
