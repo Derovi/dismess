@@ -12,3 +12,5 @@ fun hashMD5(input: String): BigInteger {
 fun generateUserID(login: String): UserID {
     return UserID(hashMD5(login))
 }
+
+typealias UniqID = BigInteger
