@@ -1,7 +1,9 @@
-package by.dismess.core.managers
+package by.dismess.core.managers.impl
 
 import by.dismess.core.dht.DHT
 import by.dismess.core.klaxon
+import by.dismess.core.managers.DataManager
+import by.dismess.core.managers.UserManager
 import by.dismess.core.model.User
 import by.dismess.core.model.UserID
 import by.dismess.core.model.attachments.ImageAttachment
