@@ -4,6 +4,13 @@ import by.dismess.core.chating.ChatManager
 import by.dismess.core.chating.MessageStatus
 import by.dismess.core.utils.UniqID
 
+/**
+ * Represents dialog
+ * Use @param lastMessage to look through chat
+ * @see MessageIterator
+ * All messages are stored in Flows. (One Flow for each chat member)
+ * @see Flow
+ */
 class Chat(val chatManager: ChatManager,
            val id: UniqID,
            val interlocutorID: UniqID) {

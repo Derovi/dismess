@@ -1,9 +1,16 @@
 package by.dismess.core.chating.elements
 
-class Flow() {
+/**
+ * Flow represents container for all
+ * messages in chat that belong to a specific chat member.
+ *
+ * Messages in flow are divided into Chunks
+ * @see Chunk
+ */
+class Flow {
     var chunkCount: Int = 0
-    val chunks = listOf<MessageChunk?>()
-    fun getChunk(idx: Int): MessageChunk {
+    val chunks = listOf<Chunk?>()
+    fun getChunk(idx: Int): Chunk {
         if (chunks[idx] == null) {
 
         }

@@ -1,9 +1,6 @@
 package by.dismess.core.chating.elements
 
-/**
- * Chunk id calculates by chatID, authorID, index
- */
-data class MessageChunk(val messages: List<Message>) {
+data class Chunk(val messages: List<Message>) {
     companion object {
         /**
          * (bytes)

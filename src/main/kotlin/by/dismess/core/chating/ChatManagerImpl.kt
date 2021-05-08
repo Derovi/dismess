@@ -1,7 +1,7 @@
 package by.dismess.core.chating
 
 import by.dismess.core.chating.elements.Chat
-import by.dismess.core.chating.elements.MessageChunk
+import by.dismess.core.chating.elements.Chunk
 import by.dismess.core.dht.DHT
 import by.dismess.core.klaxon
 import by.dismess.core.services.StorageService
@@ -20,10 +20,10 @@ class ChatManagerImpl(
     override val chats: List<Chat>
         get() = TODO("Not yet implemented")
 
-    override suspend fun loadChunk(chunkID: UniqID): MessageChunk {
-        var result = storageService.load<MessageChunk>("chunks/$chunkID")
+    override suspend fun loadChunk(chunkID: UniqID): Chunk {
+        var result = storageService.load<Chunk>("chunks/$chunkID")
         if (result == null) {
-            result = klaxon.parse<MessageChunk>(String(dht.retrieve("chunks/$chunkID")))
+            result = klaxon.parse<Chunk>(String(dht.retrieve("chunks/$chunkID")))
             if (result!!.full) {
                 storageService.save("chunks/$chunkID", result)
             }
