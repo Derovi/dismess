@@ -7,9 +7,8 @@ import java.util.*
 private const val base = 64
 private const val nullChar = "a"
 
-fun retrieveInviteString(): String {
-    val address = retrievePublicSocketAddress()
-    val bytes = (address.address.toString() + ":" + address.port.toString()).encodeToByteArray()
+fun convertAddressToInvite(address: InetSocketAddress): String {
+    val bytes = (address.address.toString().drop(1) + ":" + address.port.toString()).encodeToByteArray()
     return Base64.getEncoder().encode(bytes).decodeToString()
 }
 
