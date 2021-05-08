@@ -2,7 +2,9 @@ package by.dismess.core.chating.elements
 
 import by.dismess.core.chating.ChatManager
 import by.dismess.core.chating.MessageStatus
+import by.dismess.core.chating.elements.id.FlowID
 import by.dismess.core.utils.UniqID
+import java.lang.Exception
 
 /**
  * Represents dialog
@@ -11,14 +13,20 @@ import by.dismess.core.utils.UniqID
  * All messages are stored in Flows. (One Flow for each chat member)
  * @see Flow
  */
-class Chat(val chatManager: ChatManager,
+class Chat(val ownID: UniqID,
+           val chatManager: ChatManager,
            val id: UniqID,
-           val interlocutorID: UniqID) {
+           val otherID: UniqID) {
+
+    lateinit var ownFlow: Flow
+    lateinit var otherFlow: Flow
+
     /**
      * Synchronize incomming messages from DHT
      */
     suspend fun synchronize() {
-        TODO("Not implemented yet")
+        ownFlow = chatManager.loadFlow(FlowID(id, ownID)) ?: throw Exception("Can't load own flow")
+        otherFlow = chatManager.loadFlow(FlowID(id, otherID)) ?: throw Exception("Can't load other flow")
     }
 
     /**

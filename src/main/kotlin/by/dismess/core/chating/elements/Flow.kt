@@ -8,7 +8,6 @@ package by.dismess.core.chating.elements
  * @see Chunk
  */
 class Flow {
-    var chunkCount: Int = 0
     val chunks = listOf<Chunk?>()
     fun getChunk(idx: Int): Chunk {
         if (chunks[idx] == null) {
