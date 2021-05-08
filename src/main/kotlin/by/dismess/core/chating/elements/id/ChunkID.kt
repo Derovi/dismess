@@ -4,8 +4,7 @@ import by.dismess.core.utils.UniqID
 import by.dismess.core.utils.groupID
 import by.dismess.core.utils.uniqID
 
-data class ChunkID(val chatID: UniqID,
-                   val authorID: UniqID,
+data class ChunkID(val flowID: FlowID,
                    val index: Int) {
-    val uniqID: UniqID = groupID(chatID, authorID, index.uniqID)
+    val uniqID: UniqID = groupID(flowID.uniqID, index.uniqID)
 }

@@ -1,28 +1,46 @@
 package by.dismess.core.chating.viewing
 
 import by.dismess.core.chating.ChatManager
-import by.dismess.core.chating.elements.Chat
+import by.dismess.core.chating.elements.Chunk
+import by.dismess.core.chating.elements.Flow
 import by.dismess.core.chating.elements.Message
+import by.dismess.core.chating.elements.id.ChunkID
 import by.dismess.core.chating.elements.id.MessageID
 
 class FlowIterator(
         val chatManager: ChatManager,
-        val chat: Chat,
-        val currentID: MessageID
+        val flow: Flow,
+        var messageID: MessageID
 ) : MessageIterator {
+    lateinit var currentChunk: Chunk
+        private set
+
     override val value: Message
-        get() = TODO("Not implemented yet")
+        get() = currentChunk.messages[messageID.index]
 
     override suspend fun next(): Boolean {
-        val currentChunk = chatManager.loadChunk(currentID.chunkID)
-        if (currentID.index != currentChunk.messages.lastIndex) {
-            ++currentID.index
+        if (messageID.index < currentChunk.messages.lastIndex) {
+            messageID = MessageID(messageID.chunkID, messageID.index + 1)
             return true
         }
-
+        if (messageID.chunkID.index < flow.chunks.lastIndex) {
+            val newChunkID = ChunkID(messageID.chunkID.flowID, messageID.chunkID.index + 1)
+            currentChunk = chatManager.loadChunk(newChunkID) ?: return false
+            messageID = MessageID(newChunkID, 0)
+        }
+        return false
     }
 
     override suspend fun previous(): Boolean {
-
+        if (messageID.index > 0) {
+            messageID = MessageID(messageID.chunkID, messageID.index - 1)
+            return true
+        }
+        if (messageID.chunkID.index > 0) {
+            val newChunkID = ChunkID(messageID.chunkID.flowID, messageID.chunkID.index - 1)
+            currentChunk = chatManager.loadChunk(newChunkID) ?: return false
+            messageID = MessageID(newChunkID, currentChunk.messages.lastIndex)
+        }
+        return false
     }
 }
