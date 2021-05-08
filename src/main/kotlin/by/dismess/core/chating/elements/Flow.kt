@@ -9,10 +9,4 @@ package by.dismess.core.chating.elements
  */
 class Flow {
     val chunks = listOf<Chunk?>()
-    fun getChunk(idx: Int): Chunk {
-        if (chunks[idx] == null) {
-
-        }
-        return chunks[idx]
-    }
 }
