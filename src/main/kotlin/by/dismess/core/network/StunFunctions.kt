@@ -10,7 +10,7 @@ import java.net.DatagramSocket
 import java.net.InetAddress
 import java.net.InetSocketAddress
 
-fun getPublicSocketAddress(): InetSocketAddress {
+fun retrievePublicSocketAddress(): InetSocketAddress {
     val sendMessageHeader = MessageHeader(MessageHeaderInterface.MessageHeaderType.BindingRequest)
     val changeRequest = ChangeRequest()  // JSTUN requires empty request to be attached
     sendMessageHeader.addMessageAttribute(changeRequest)
