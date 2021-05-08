@@ -1,6 +1,6 @@
 package by.dismess.core
 
-import by.dismess.core.model.Message
+import by.dismess.core.chating.Message
 import by.dismess.core.model.UserID
 
 class APIImplementation : API {

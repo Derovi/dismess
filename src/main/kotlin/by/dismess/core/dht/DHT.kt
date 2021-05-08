@@ -7,4 +7,5 @@ interface DHT {
     fun store(key: String, data: ByteArray)
     fun retrieve(key: String): ByteArray
     fun find(userId: UserID): InetSocketAddress
+    fun remember(users: List<Map.Entry<UniqID, InetSocketAddress>>)
 }

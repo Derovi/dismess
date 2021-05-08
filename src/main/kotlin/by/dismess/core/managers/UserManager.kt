@@ -2,7 +2,7 @@ package by.dismess.core.managers
 
 import by.dismess.core.model.User
 import by.dismess.core.model.UserID
-import by.dismess.core.model.attachments.ImageAttachment
+import by.dismess.core.chating.attachments.ImageAttachment
 
 interface UserManager {
     suspend fun sendPost(target: UserID, tag: String, data: Any, timeout: Long = 1000): Boolean

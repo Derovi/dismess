@@ -1,7 +1,7 @@
 package by.dismess.core.managers
 
 import by.dismess.core.model.UserID
-import by.dismess.core.model.attachments.ImageAttachment
+import by.dismess.core.chating.attachments.ImageAttachment
 import java.net.InetSocketAddress
 
 interface DataManager {
