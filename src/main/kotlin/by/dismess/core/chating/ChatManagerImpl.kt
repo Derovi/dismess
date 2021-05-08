@@ -1,7 +1,7 @@
 package by.dismess.core.chating
 
-import by.dismess.core.chating.ChatManager
-import by.dismess.core.chating.Message
+import by.dismess.core.chating.elements.Chat
+import by.dismess.core.chating.elements.MessageChunk
 import by.dismess.core.dht.DHT
 import by.dismess.core.klaxon
 import by.dismess.core.services.StorageService

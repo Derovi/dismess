@@ -1,8 +1,6 @@
-package by.dismess.core.chating
+package by.dismess.core.chating.elements
 
-import by.dismess.core.utils.UniqID
-
-class MessageFlow() {
+class Flow() {
     var chunkCount: Int = 0
     val chunks = listOf<MessageChunk?>()
     fun getChunk(idx: Int): MessageChunk {

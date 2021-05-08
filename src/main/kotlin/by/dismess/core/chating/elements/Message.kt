@@ -1,5 +1,6 @@
-package by.dismess.core.chating
+package by.dismess.core.chating.elements
 
+import by.dismess.core.chating.Attachment
 import by.dismess.core.model.UserID
 import java.util.Date
 

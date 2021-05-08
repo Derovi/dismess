@@ -1,8 +1,12 @@
-package by.dismess.core.chating
+package by.dismess.core.chating.elements
 
+import by.dismess.core.chating.ChatManager
+import by.dismess.core.chating.MessageStatus
 import by.dismess.core.utils.UniqID
 
-class Chat(val id: UniqID, val interlocutorID: UniqID) {
+class Chat(val chatManager: ChatManager,
+           val id: UniqID,
+           val interlocutorID: UniqID) {
     /**
      * Synchronize incomming messages from DHT
      */

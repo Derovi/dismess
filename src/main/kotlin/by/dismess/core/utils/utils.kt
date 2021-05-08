@@ -24,3 +24,6 @@ fun groupID(vararg idList: UniqID): UniqID {
     }
     return UniqID(1, md.digest(outputStream.toByteArray()))
 }
+
+val Int.uniqID: BigInteger
+    get() = UniqID.valueOf(this.toLong())

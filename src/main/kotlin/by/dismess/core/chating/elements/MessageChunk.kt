@@ -1,4 +1,4 @@
-package by.dismess.core.chating
+package by.dismess.core.chating.elements
 
 /**
  * Chunk id calculates by chatID, authorID, index
