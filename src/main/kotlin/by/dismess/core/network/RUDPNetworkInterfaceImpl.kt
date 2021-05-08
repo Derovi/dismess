@@ -18,7 +18,7 @@ class RUDPNetworkInterfaceImpl : NetworkInterface {
     private lateinit var receiver: (sender: InetSocketAddress, data: ByteArray) -> Unit
 
     private fun receive(dataPacket: QueuedDatagramPacket) {
-        val dataBytes = ByteArray(dataPacket.data.capacity())
+        val dataBytes = ByteArray(dataPacket.data.remaining())
         dataPacket.data.get(dataBytes)
         receiver(dataPacket.address, dataBytes)
     }
