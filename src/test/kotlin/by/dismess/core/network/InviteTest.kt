@@ -4,7 +4,7 @@ import org.junit.Assert
 import org.junit.Test
 import java.net.InetAddress
 import java.net.InetSocketAddress
-import java.util.*
+import java.util.Base64
 
 class InviteTest {
     @Test
@@ -22,6 +22,7 @@ class InviteTest {
         val initialPort = 12345
         val initialSocketAddress = InetSocketAddress(initialAddress, initialPort)
         val invite: String = convertAddressToInvite(initialSocketAddress)
+        println(invite)
         val decipheredSocketAddress: InetSocketAddress? = convertInviteToAddress(invite)
         Assert.assertEquals(initialSocketAddress, decipheredSocketAddress)
     }
