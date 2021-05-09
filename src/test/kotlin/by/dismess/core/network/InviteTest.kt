@@ -8,6 +8,13 @@ import java.util.*
 
 class InviteTest {
     @Test
+    fun retrieveTest() {
+        val address = retrievePublicSocketAddress(8080)
+        println(address.address.toString().drop(1))
+        println(address.port)
+    }
+
+    @Test
     fun testReal() {
         val initialAddress = InetAddress.getByName("31.214.29.41")
         val initialPort = 12345

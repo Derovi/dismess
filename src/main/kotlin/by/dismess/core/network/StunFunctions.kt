@@ -10,13 +10,13 @@ import java.net.DatagramSocket
 import java.net.InetAddress
 import java.net.InetSocketAddress
 
-fun retrievePublicSocketAddress(): InetSocketAddress {
+fun retrievePublicSocketAddress(port: Int): InetSocketAddress {
     val sendMessageHeader = MessageHeader(MessageHeaderInterface.MessageHeaderType.BindingRequest)
     val changeRequest = ChangeRequest()  // JSTUN requires empty request to be attached
     sendMessageHeader.addMessageAttribute(changeRequest)
     val data: ByteArray = sendMessageHeader.bytes
 
-    val socket = DatagramSocket()
+    val socket = DatagramSocket(port)
     socket.reuseAddress = true
     val packet = DatagramPacket(data, data.size, InetAddress.getByName("stun.l.google.com"), 19302)
     socket.send(packet)
