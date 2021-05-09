@@ -1,7 +1,16 @@
 package by.dismess.core.utils
 
 import by.dismess.core.model.UserID
+import com.google.gson.GsonBuilder
+import com.google.gson.JsonDeserializationContext
+import com.google.gson.JsonDeserializer
+import com.google.gson.JsonElement
+import com.google.gson.JsonPrimitive
+import com.google.gson.JsonSerializationContext
+import com.google.gson.JsonSerializer
+import java.lang.reflect.Type
 import java.math.BigInteger
+import java.net.InetSocketAddress
 import java.nio.ByteBuffer
 import java.security.MessageDigest
 
@@ -17,3 +26,49 @@ fun twoBytesToInt(number: ByteArray): Int = (number[0].toInt() and 0xff shl 8) o
 
 fun intToBytes(number: Int, size: Int = 1): ByteArray =
     ByteBuffer.allocate(4).putInt(number).array().sliceArray((4 - size)..3)
+
+val gsonBuilder = GsonBuilder()
+    .registerTypeAdapter(InetSocketAddress::class.java, InetSocketAddressConverter())
+    .registerTypeAdapter(UserID::class.java, UserIDConverter())
+val gson = gsonBuilder.create()
+
+class InetSocketAddressConverter : JsonSerializer<InetSocketAddress>, JsonDeserializer<InetSocketAddress> {
+    override fun serialize(src: InetSocketAddress?, typeOfSrc: Type?, context: JsonSerializationContext?): JsonElement {
+        if (src == null) {
+            throw Exception("Couldn't serialize: null object!")
+        }
+        val address = src.address.toString().substring(1)
+        val port = src.port
+        return JsonPrimitive("/$address:$port")
+    }
+
+    override fun deserialize(
+        json: JsonElement?,
+        typeOfT: Type?,
+        context: JsonDeserializationContext?
+    ): InetSocketAddress {
+        if (json == null) {
+            throw Exception("Couldn't deserialize: null object!")
+        }
+        val data = json.asString.substring(1).split(":")
+        return InetSocketAddress(data[0], data[1].toInt())
+    }
+}
+
+class UserIDConverter : JsonSerializer<UserID>, JsonDeserializer<UserID> {
+    override fun serialize(src: UserID?, typeOfSrc: Type?, context: JsonSerializationContext?): JsonElement {
+        if (src == null) {
+            throw Exception("Couldn't serialize: null object!")
+        }
+        val id = src.rawID
+        return JsonPrimitive(id)
+    }
+
+    override fun deserialize(json: JsonElement?, typeOfT: Type?, context: JsonDeserializationContext?): UserID {
+        if (json == null) {
+            throw Exception("Couldn't deserialize: null object!")
+        }
+        val userID = UserID(json.asString)
+        return userID
+    }
+}
