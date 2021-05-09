@@ -12,7 +12,6 @@ class InviteTest {
         val address = retrievePublicSocketAddress(8080)
         Assert.assertNotNull(address)
         val decipheredInvite = address!!.address.toString().drop(1) + ":" + address.port.toString()
-        println(decipheredInvite)
         Assert.assertTrue(validateDecipheredInvite(decipheredInvite))
     }
 
@@ -22,7 +21,6 @@ class InviteTest {
         val initialPort = 12345
         val initialSocketAddress = InetSocketAddress(initialAddress, initialPort)
         val invite: String = convertAddressToInvite(initialSocketAddress)
-        println(invite)
         val decipheredSocketAddress: InetSocketAddress? = convertInviteToAddress(invite)
         Assert.assertEquals(initialSocketAddress, decipheredSocketAddress)
     }
