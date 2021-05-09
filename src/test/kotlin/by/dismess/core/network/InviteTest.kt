@@ -8,10 +8,11 @@ import java.util.*
 
 class InviteTest {
     @Test
-    fun retrieveTest() {
+    fun testRetrieve() {
         val address = retrievePublicSocketAddress(8080)
-        println(address.address.toString().drop(1))
-        println(address.port)
+        val decipheredInvite = address.address.toString().drop(1) + ":" + address.port.toString()
+//        println(decipheredInvite)
+        Assert.assertTrue(validateDecipheredInvite(decipheredInvite))
     }
 
     @Test
