@@ -38,6 +38,8 @@ class Chat(val ownID: UniqID,
      * READ status can be received by event
      */
     suspend fun sendMessage(message: Message): MessageStatus {
-        
+        otherFlow.addMessage(message)
+        otherFlow.persist() // TODO optimize
+        chatManager.sendDirectMessage(otherID, message)
     }
 }
