@@ -38,6 +38,6 @@ class Chat(val ownID: UniqID,
      * READ status can be received by event
      */
     suspend fun sendMessage(message: Message): MessageStatus {
-        TODO("Not implemented yet")
+        
     }
 }
