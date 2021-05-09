@@ -4,6 +4,7 @@ import by.dismess.core.chating.ChatManager
 import by.dismess.core.chating.elements.id.ChunkID
 import by.dismess.core.chating.elements.stored.ChunkStored
 import by.dismess.core.chating.elements.stored.FlowStored
+import java.lang.Integer.max
 
 /**
  * Flow represents container for all
@@ -28,7 +29,8 @@ class Flow(
             return null
         }
         if (chunks[idx] == null) {
-            chunks[idx] = chatManager.loadChunk(ChunkID(id, idx))
+            chunks[idx] = Chunk(chatManager,
+                    chatManager.loadChunk(ChunkID(id, idx))?: return null)
         }
         return chunks[idx]
     }
@@ -41,24 +43,24 @@ class Flow(
     }
 
     override suspend fun accept() {
-        if (chunks.size == stored.chunkCount) {
-            return
-        }
-        for (idx in stored.chunkCount until chunks.size) {
+        for (idx in max(0, stored.chunkCount - 1) until chunks.size) {
             chunks[idx]?.accept()
+        }
+        if (stored.chunkCount == chunks.size) {
+            return
         }
         val newStored = FlowStored(id, chunks.size)
         chatManager.acceptFlow(newStored)
     }
 
     override suspend fun persist(): Boolean {
-        if (chunks.size == stored.chunkCount) {
-            return true
-        }
-        for (idx in stored.chunkCount until chunks.size) {
+        for (idx in max(0, stored.chunkCount - 1) until chunks.size) {
             if (!chunks[idx]!!.persist()) {
                 return false
             }
+        }
+        if (stored.chunkCount == chunks.size) {
+            return true
         }
         val newStored = FlowStored(id, chunks.size)
         return chatManager.persistFlow(newStored)

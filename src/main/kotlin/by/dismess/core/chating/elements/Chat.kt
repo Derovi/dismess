@@ -26,8 +26,10 @@ class Chat(val ownID: UniqID,
      * Synchronize incomming messages from DHT
      */
     suspend fun synchronize() {
-        ownFlow = chatManager.loadFlow(FlowID(id, ownID)) ?: throw Exception("Can't load own flow")
-        otherFlow = chatManager.loadFlow(FlowID(id, otherID)) ?: throw Exception("Can't load other flow")
+        ownFlow = Flow(chatManager,
+                chatManager.loadFlow(FlowID(id, ownID)) ?: throw Exception("Can't load own flow"))
+        otherFlow = Flow(chatManager,
+                chatManager.loadFlow(FlowID(id, otherID)) ?: throw Exception("Can't load other flow"))
     }
 
     /**
