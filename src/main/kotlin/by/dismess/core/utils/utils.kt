@@ -19,6 +19,7 @@ typealias UniqID = BigInteger
 
 fun groupID(vararg idList: UniqID): UniqID {
     val outputStream = ByteArrayOutputStream()
+    // TODO fix
     for (id in idList) {
         outputStream.writeBytes(id.toByteArray())
     }

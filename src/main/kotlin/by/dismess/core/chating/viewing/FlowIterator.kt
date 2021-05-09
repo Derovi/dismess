@@ -24,7 +24,7 @@ class FlowIterator private constructor(
                            flow: Flow,
                            messageID: MessageID): FlowIterator =
                 FlowIterator(chatManager, flow, messageID).also {
-                    it.currentChunk = chatManager.loadChunk(messageID.chunkID)
+                    it.currentChunk = flow.chunkAt(messageID.chunkID.index)
                             ?: throw ExceptionInInitializerError("Can't load initial chunk")
                 }
     }
@@ -39,7 +39,7 @@ class FlowIterator private constructor(
         }
         if (messageID.chunkID.index < flow.chunks.lastIndex) {
             val newChunkID = ChunkID(messageID.chunkID.flowID, messageID.chunkID.index + 1)
-            currentChunk = chatManager.loadChunk(newChunkID) ?: return false
+            currentChunk = flow.chunkAt(newChunkID.index) ?: return false
             messageID = MessageID(newChunkID, 0)
         }
         return false
@@ -52,7 +52,7 @@ class FlowIterator private constructor(
         }
         if (messageID.chunkID.index > 0) {
             val newChunkID = ChunkID(messageID.chunkID.flowID, messageID.chunkID.index - 1)
-            currentChunk = chatManager.loadChunk(newChunkID) ?: return false
+            currentChunk = flow.chunkAt(newChunkID.index) ?: return false
             messageID = MessageID(newChunkID, currentChunk.messages.lastIndex)
         }
         return false

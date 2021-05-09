@@ -41,7 +41,7 @@ private var servicesModule = module {
 }
 
 private var dhtModule = module {
-    single<DHT> { DHTImpl(get(), get()) }
+    single<DHT> { DHTImpl() }
 }
 
 fun startCore(outerModule: Module) {
