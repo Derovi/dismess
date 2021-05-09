@@ -14,15 +14,13 @@ import by.dismess.core.chating.elements.stored.FlowStored
  */
 class Flow(
         val chatManager: ChatManager,
-        val description: FlowStored
-) : Storable {
-    var globalCount = description.chunkCount
-    var localCount = description.chunkCount
+        var stored: FlowStored
+) : Element {
 
-    val chunks = List<Chunk?>(description.chunkCount) { null }
+    val chunks = List<Chunk?>(stored.chunkCount) { null }
 
     val id
-        get() = description.id
+        get() = stored.id
 
     suspend fun chunkAt(idx: Int): Chunk? {
         chunks as MutableList<Chunk?> // gives access to change list
@@ -42,28 +40,27 @@ class Flow(
         }
     }
 
-    override suspend fun store() {
-        if (chunks.size == localCount) {
+    override suspend fun accept() {
+        if (chunks.size == stored.chunkCount) {
             return
         }
-        for (idx in localCount until chunks.size) {
-            chunks[idx]?.store()
+        for (idx in stored.chunkCount until chunks.size) {
+            chunks[idx]?.accept()
         }
-        localCount = chunks.size
-        chatManager.storeFlow(FlowStored(id, localCount))
+        val newStored = FlowStored(id, chunks.size)
+        chatManager.acceptFlow(newStored)
     }
 
-    override suspend fun publish(): Boolean {
-        if (chunks.size == globalCount) {
+    override suspend fun persist(): Boolean {
+        if (chunks.size == stored.chunkCount) {
             return true
         }
-        store()
-        for (idx in globalCount until chunks.size) {
-            if (chunks[idx]!!.publish()) {
+        for (idx in stored.chunkCount until chunks.size) {
+            if (!chunks[idx]!!.persist()) {
                 return false
             }
         }
-        globalCount = chunks.size
-        return chatManager.publishFlow(FlowStored(id, globalCount))
+        val newStored = FlowStored(id, chunks.size)
+        return chatManager.persistFlow(newStored)
     }
 }

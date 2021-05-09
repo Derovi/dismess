@@ -1,5 +1,6 @@
 package by.dismess.core.chating.elements
 
+import by.dismess.core.chating.ChatManager
 import by.dismess.core.chating.elements.stored.ChunkStored
 
 /**
@@ -8,7 +9,12 @@ import by.dismess.core.chating.elements.stored.ChunkStored
  * Complete chunks are immutable
  * Incomplete chunk is the last one, it is mutable
  */
-class Chunk(description: ChunkStored) : Storable {
+class Chunk(
+        val chatManager: ChatManager,
+        stored: ChunkStored
+) : Element {
+    var storedSize = stored.messages.size
+
     companion object {
         /**
          * (bytes)
@@ -18,7 +24,7 @@ class Chunk(description: ChunkStored) : Storable {
         const val BYTE_SIZE_FRONTIER = 64500
     }
 
-    val messages = description.messages
+    val messages = stored.messages
 
     var byteSize = 0
         private set
@@ -36,11 +42,22 @@ class Chunk(description: ChunkStored) : Storable {
         byteSize += message.byteSize
     }
 
-    override fun store() {
-        TODO("Not yet implemented")
+    override suspend fun accept() {
+        if (storedSize == messages.size) {
+            return
+        }
+        chatManager.acceptChunk(ChunkStored(messages))
+        storedSize = messages.size
     }
 
-    override fun publish(): Boolean {
-        TODO("Not yet implemented")
+    override suspend fun persist(): Boolean {
+        if (storedSize == messages.size) {
+            return true
+        }
+        if (!chatManager.persistChunk(ChunkStored(messages))) {
+            return false
+        }
+        storedSize = messages.size
+        return true
     }
 }

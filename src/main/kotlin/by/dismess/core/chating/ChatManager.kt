@@ -19,9 +19,9 @@ interface ChatManager {
     suspend fun loadFlow(flowID: FlowID) = loadFlow(flowID.uniqID)
     suspend fun loadFlow(flowID: UniqID): FlowStored?
 
-    suspend fun storeChunk(chunk: ChunkStored)
-    suspend fun publishChunk(chunk: ChunkStored): Boolean
+    suspend fun acceptChunk(chunk: ChunkStored)
+    suspend fun persistChunk(chunk: ChunkStored): Boolean
 
-    suspend fun storeFlow(flow: FlowStored)
-    suspend fun publishFlow(flow: FlowStored): Boolean
+    suspend fun acceptFlow(flow: FlowStored)
+    suspend fun persistFlow(flow: FlowStored): Boolean
 }

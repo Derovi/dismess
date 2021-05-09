@@ -23,7 +23,8 @@ class ChatManagerImpl(
             it.data ?: return@registerPost
             val message = klaxon.parse<Message>(it.data!!) ?: return@registerPost
             val chat = chats[message.chatID] ?: return@registerPost
-
+            chat.otherFlow.addMessage(message)
+            chat.otherFlow.store() // TODO optimize
             eventBUS.callEvent(MessageEvent(message))
         }
     }
