@@ -22,7 +22,7 @@ private const val datagramLength = 68
 
 fun retrievePublicSocketAddress(port: Int): InetSocketAddress? {
     val sendMessageHeader = MessageHeader(MessageHeaderInterface.MessageHeaderType.BindingRequest)
-    val changeRequest = ChangeRequest()  // JSTUN requires empty request to be attached
+    val changeRequest = ChangeRequest() // JSTUN requires empty request to be attached
     sendMessageHeader.addMessageAttribute(changeRequest)
     val data: ByteArray = sendMessageHeader.bytes
 

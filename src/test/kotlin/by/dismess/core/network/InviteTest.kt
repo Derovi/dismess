@@ -27,7 +27,7 @@ class InviteTest {
 
     @Test
     fun testJunk() {
-        val initialEncodedBytes = "192.168.86868:01".encodeToByteArray()  // Non-valid ip
+        val initialEncodedBytes = "192.168.86868:01".encodeToByteArray() // Non-valid ip
         val invite = Base64.getEncoder().encode(initialEncodedBytes).decodeToString()
         val finalAddress: InetSocketAddress? = convertInviteToAddress(invite)
         Assert.assertNull(finalAddress)
