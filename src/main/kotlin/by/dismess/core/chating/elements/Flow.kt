@@ -38,7 +38,9 @@ class Flow(
     suspend fun addMessage(message: Message) {
         chunks as MutableList<Chunk?> // gives access to change list
         if (chunks.isEmpty() || chunkAt(chunks.lastIndex)!!.complete) {
-            chunks.add(Chunk(chatManager, ChunkStored(listOf(message))))
+            chunks.add(Chunk(chatManager, ChunkStored(ChunkID(id, chunks.size), listOf(message))))
+        } else {
+            chunks.last()!!.addMessage(message)
         }
     }
 

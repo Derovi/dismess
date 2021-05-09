@@ -3,6 +3,7 @@ package by.dismess.core.chating.elements
 import by.dismess.core.chating.ChatManager
 import by.dismess.core.chating.MessageStatus
 import by.dismess.core.chating.elements.id.FlowID
+import by.dismess.core.chating.viewing.MessageIterator
 import by.dismess.core.utils.UniqID
 import kotlinx.coroutines.*
 import java.lang.Exception
@@ -54,4 +55,6 @@ class Chat(val ownID: UniqID,
         }
         return status
     }
+
+    val lastMessage: MessageIterator = TODO("Not implemented yet")
 }
