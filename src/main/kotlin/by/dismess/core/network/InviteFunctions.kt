@@ -2,7 +2,7 @@ package by.dismess.core.network
 
 import java.net.InetAddress
 import java.net.InetSocketAddress
-import java.util.*
+import java.util.Base64
 
 fun convertAddressToInvite(address: InetSocketAddress): String {
     val bytes = (address.address.toString().drop(1) + ":" + address.port.toString()).encodeToByteArray()
