@@ -10,8 +10,9 @@ class InviteTest {
     @Test
     fun testRetrieve() {
         val address = retrievePublicSocketAddress(8080)
-        val decipheredInvite = address.address.toString().drop(1) + ":" + address.port.toString()
-//        println(decipheredInvite)
+        Assert.assertNotNull(address)
+        val decipheredInvite = address!!.address.toString().drop(1) + ":" + address.port.toString()
+        println(decipheredInvite)
         Assert.assertTrue(validateDecipheredInvite(decipheredInvite))
     }
 
