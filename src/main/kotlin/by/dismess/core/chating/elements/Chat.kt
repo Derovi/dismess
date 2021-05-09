@@ -4,6 +4,7 @@ import by.dismess.core.chating.ChatManager
 import by.dismess.core.chating.MessageStatus
 import by.dismess.core.chating.elements.id.FlowID
 import by.dismess.core.utils.UniqID
+import kotlinx.coroutines.*
 import java.lang.Exception
 
 /**
@@ -38,8 +39,17 @@ class Chat(val ownID: UniqID,
      * READ status can be received by event
      */
     suspend fun sendMessage(message: Message): MessageStatus {
-        otherFlow.addMessage(message)
-        otherFlow.persist() // TODO optimize
-        chatManager.sendDirectMessage(otherID, message)
+        var status = MessageStatus.ERROR
+        coroutineScope {
+            launch { otherFlow.addMessage(message) }
+            val persistSuccessful = async { otherFlow.persist() } // TODO optimize
+            val directSuccessful = async { chatManager.sendDirectMessage(otherID, message) }
+            if (directSuccessful.await()) {
+                status = MessageStatus.DELIVERED
+            } else if (persistSuccessful.await()) {
+                status = MessageStatus.SENT
+            }
+        }
+        return status
     }
 }
