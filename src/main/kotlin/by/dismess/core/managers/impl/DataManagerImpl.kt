@@ -1,7 +1,8 @@
-package by.dismess.core.managers
+package by.dismess.core.managers.impl
 
+import by.dismess.core.managers.DataManager
 import by.dismess.core.model.UserID
-import by.dismess.core.model.attachments.ImageAttachment
+import by.dismess.core.chating.attachments.ImageAttachment
 import by.dismess.core.services.StorageService
 import java.net.InetSocketAddress
 
@@ -27,10 +28,10 @@ class DataManagerImpl(
     override suspend fun getAvatar(): ImageAttachment? =
         storageService.load(DataManager.Keys.AVATAR)
 
-    override suspend fun saveMyIP(ip: InetSocketAddress): Unit =
+    override suspend fun setOwnIP(ip: InetSocketAddress): Unit =
         storageService.save(DataManager.Keys.MY_IP, ip)
 
-    override suspend fun getMyIP(): InetSocketAddress? =
+    override suspend fun getOwnIP(): InetSocketAddress? =
         storageService.load(DataManager.Keys.MY_IP)
 
     override suspend fun saveLastIP(userID: UserID, ip: InetSocketAddress): Unit =
