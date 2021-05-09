@@ -1,6 +1,5 @@
 package by.dismess.core.utils
 
-import by.dismess.core.model.UserID
 import java.io.ByteArrayOutputStream
 import java.math.BigInteger
 import java.nio.ByteBuffer
@@ -31,4 +30,3 @@ fun twoBytesToInt(number: ByteArray): Int = (number[0].toInt() and 0xff shl 8) o
 
 fun intToBytes(number: Int, size: Int = 1): ByteArray =
     ByteBuffer.allocate(4).putInt(number).array().sliceArray((4 - size)..3)
-
