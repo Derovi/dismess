@@ -7,8 +7,8 @@ import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 
 class AppImpl(
-        val dht: DHT,
-        val dataManager: DataManager
+    val dht: DHT,
+    val dataManager: DataManager
 ) : App {
     override suspend fun register(login: String, invite: Invite): Unit = coroutineScope {
         GlobalScope.launch { dataManager.saveLogin(login) }

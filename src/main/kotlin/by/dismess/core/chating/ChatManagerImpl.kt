@@ -15,11 +15,11 @@ import by.dismess.core.services.StorageService
 import by.dismess.core.utils.UniqID
 
 class ChatManagerImpl(
-        val userManager: UserManager,
-        val networkService: NetworkService,
-        val storageService: StorageService,
-        val eventBUS: EventBus,
-        val dht: DHT
+    val userManager: UserManager,
+    val networkService: NetworkService,
+    val storageService: StorageService,
+    val eventBUS: EventBus,
+    val dht: DHT
 ) : ChatManager {
     init {
         networkService.registerPost("Chats/Send") {

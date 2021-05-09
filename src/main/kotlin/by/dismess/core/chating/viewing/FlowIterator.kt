@@ -8,9 +8,9 @@ import by.dismess.core.chating.elements.id.ChunkID
 import by.dismess.core.chating.elements.id.MessageID
 
 class FlowIterator private constructor(
-        val chatManager: ChatManager,
-        val flow: Flow,
-        var messageID: MessageID
+    val chatManager: ChatManager,
+    val flow: Flow,
+    var messageID: MessageID
 ) : MessageIterator {
     lateinit var currentChunk: Chunk
         private set
@@ -20,13 +20,15 @@ class FlowIterator private constructor(
          * Motivation:
          * Kotlin do not support suspending constructors
          */
-        suspend fun create(chatManager: ChatManager,
-                           flow: Flow,
-                           messageID: MessageID): FlowIterator =
-                FlowIterator(chatManager, flow, messageID).also {
-                    it.currentChunk = flow.chunkAt(messageID.chunkID.index)
-                            ?: throw ExceptionInInitializerError("Can't load initial chunk")
-                }
+        suspend fun create(
+            chatManager: ChatManager,
+            flow: Flow,
+            messageID: MessageID
+        ): FlowIterator =
+            FlowIterator(chatManager, flow, messageID).also {
+                it.currentChunk = flow.chunkAt(messageID.chunkID.index)
+                    ?: throw ExceptionInInitializerError("Can't load initial chunk")
+            }
     }
 
     override val value: Message

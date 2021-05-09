@@ -5,7 +5,9 @@ import by.dismess.core.chating.MessageStatus
 import by.dismess.core.chating.elements.id.FlowID
 import by.dismess.core.chating.viewing.MessageIterator
 import by.dismess.core.utils.UniqID
-import kotlinx.coroutines.*
+import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.launch
 import java.lang.Exception
 
 /**
@@ -15,10 +17,12 @@ import java.lang.Exception
  * All messages are stored in Flows. (One Flow for each chat member)
  * @see Flow
  */
-class Chat(val ownID: UniqID,
-           val chatManager: ChatManager,
-           val id: UniqID,
-           val otherID: UniqID) {
+class Chat(
+    val ownID: UniqID,
+    val chatManager: ChatManager,
+    val id: UniqID,
+    val otherID: UniqID
+) {
 
     lateinit var ownFlow: Flow
     lateinit var otherFlow: Flow
@@ -27,10 +31,14 @@ class Chat(val ownID: UniqID,
      * Synchronize incomming messages from DHT
      */
     suspend fun synchronize() {
-        ownFlow = Flow(chatManager,
-                chatManager.loadFlow(FlowID(id, ownID)) ?: throw Exception("Can't load own flow"))
-        otherFlow = Flow(chatManager,
-                chatManager.loadFlow(FlowID(id, otherID)) ?: throw Exception("Can't load other flow"))
+        ownFlow = Flow(
+            chatManager,
+            chatManager.loadFlow(FlowID(id, ownID)) ?: throw Exception("Can't load own flow")
+        )
+        otherFlow = Flow(
+            chatManager,
+            chatManager.loadFlow(FlowID(id, otherID)) ?: throw Exception("Can't load other flow")
+        )
     }
 
     /**
