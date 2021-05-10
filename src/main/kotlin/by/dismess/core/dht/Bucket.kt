@@ -1,11 +1,10 @@
 package by.dismess.core.dht
 
-import by.dismess.core.model.UserID
+import java.math.BigInteger
 import java.net.InetSocketAddress
 
 class Bucket(
     val border: BucketBorder
 ) {
-    val idToIP = mutableMapOf<UserID, InetSocketAddress>()
-    var lastPingTime = System.currentTimeMillis()
+    val idToIP = mutableMapOf<BigInteger, InetSocketAddress>()
 }
