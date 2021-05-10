@@ -1,5 +1,6 @@
 package by.dismess.core.utils
 
+import by.dismess.core.model.UserID
 import java.io.ByteArrayOutputStream
 import java.math.BigInteger
 import java.nio.ByteBuffer

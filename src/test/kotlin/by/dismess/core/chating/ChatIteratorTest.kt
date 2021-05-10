@@ -46,7 +46,12 @@ class ChatIteratorTest : KoinTest {
     private fun messageList(dates: List<Long>): MutableList<Message> {
         val result = mutableListOf<Message>()
         for (date in dates) {
-            val message = Message(Date(date), generateUserID(date.toString()), date.toString())
+            val message = Message(
+                Date(date),
+                generateUserID(date.toString()).rawID,
+                generateUserID(date.toString()).rawID,
+                date.toString()
+            )
             result.add(message)
         }
         return result
