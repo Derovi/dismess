@@ -7,7 +7,7 @@ class ChatIterator(val flows: MutableList<MessageIterator>) : MessageIterator {
 
     private val nextLayer: MutableList<MessageInfo> = mutableListOf()
     private val previousLayer: MutableList<MessageInfo> = mutableListOf()
-    private var lastNext = true
+    private var lastActionIsNext = true
     private var valueFlowInd = 0
     override lateinit var value: Message
         private set
@@ -56,8 +56,8 @@ class ChatIterator(val flows: MutableList<MessageIterator>) : MessageIterator {
     }
 
     override suspend fun next(): Boolean {
-        if (!lastNext) {
-            lastNext = true
+        if (!lastActionIsNext) {
+            lastActionIsNext = true
             flows[valueFlowInd].next()
             for (flow in flows) {
                 if (flow.value.date <= value.date) {
@@ -86,8 +86,8 @@ class ChatIterator(val flows: MutableList<MessageIterator>) : MessageIterator {
     }
 
     override suspend fun previous(): Boolean {
-        if (lastNext) {
-            lastNext = false
+        if (lastActionIsNext) {
+            lastActionIsNext = false
             flows[valueFlowInd].previous()
             for (flow in flows) {
                 if (flow.value.date >= value.date) {

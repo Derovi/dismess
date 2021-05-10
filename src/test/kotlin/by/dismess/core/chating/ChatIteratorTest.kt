@@ -8,10 +8,7 @@ import kotlinx.coroutines.runBlocking
 import org.junit.Assert
 import org.junit.Test
 import org.koin.test.KoinTest
-import java.lang.Integer.max
-import java.lang.Integer.min
 import java.util.Date
-import kotlin.random.Random
 
 class ChatIteratorTest : KoinTest {
 
