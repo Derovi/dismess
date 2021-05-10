@@ -23,9 +23,13 @@ class ProtocolManager {
             type = DataType.KEY
         }
         encryptor.updateKey()
-        encryptor.setReceiverPublicKey(data.sliceArray(1 until data.size))
-        val protocolPrefix: ByteArray = byteArrayOf(1, 1)
-        return TypedData(type, protocolPrefix + encryptor.publicKeyBytes(updateSession = false))
+        var backOrder: Byte = 1
+        val updated = encryptor.setReceiverPublicKey(data.sliceArray(1 until data.size))
+        if (!updated) {
+            backOrder = 0
+        }
+        val protocolPrefix: ByteArray = byteArrayOf(1, backOrder)
+        return TypedData(type, protocolPrefix + encryptor.publicKeyBytes(updateSession = !updated))
     }
 
     /**

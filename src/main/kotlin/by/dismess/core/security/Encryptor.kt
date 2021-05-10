@@ -2,12 +2,15 @@ package by.dismess.core.security
 
 import by.dismess.core.utils.intToBytes
 import by.dismess.core.utils.twoBytesToInt
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.channels.Channel
 import java.security.Key
 import java.security.KeyFactory
 import java.security.KeyPairGenerator
 import java.security.PublicKey
 import java.security.spec.X509EncodedKeySpec
 import java.util.Base64
+import java.util.concurrent.atomic.AtomicBoolean
 import javax.crypto.Cipher
 import javax.crypto.KeyAgreement
 import javax.crypto.interfaces.DHPublicKey
@@ -20,6 +23,7 @@ const val SESSION_NUMBER_SIZE: Int = 2
 const val MAX_OFFSET = (KEY_SIZE - AES_SIZE * 8) / 8
 
 class Encryptor {
+    private val channel: Channel<Unit> = Channel()
     private var keyAgreement: KeyAgreement = KeyAgreement.getInstance("DH")
     private val keyPairGenerator: KeyPairGenerator = KeyPairGenerator.getInstance("DH")
     private val keyFactory = KeyFactory.getInstance("DH")
@@ -74,6 +78,10 @@ class Encryptor {
         aesKeys.add(Pair<Int, ByteArray>(currentSession, newKey))
     }
 
+    fun isInitialized(): Boolean {
+        return aesKeys.isNotEmpty()
+    }
+
     fun publicKeyBytes(updateSession: Boolean): ByteArray {
         val bytePublicKey = publicKey.encoded
         var session = currentSession
@@ -96,13 +104,22 @@ class Encryptor {
      * Fulfill key agreement with other party public key and generate common secret as AES key
      * @param key other party key
      */
-    fun setReceiverPublicKey(key: ByteArray) {
+    @ExperimentalCoroutinesApi
+    suspend fun setReceiverPublicKey(key: ByteArray): Boolean {
         var bytePublicKey = Base64.getDecoder().decode(key)
-        currentSession = twoBytesToInt(bytePublicKey.sliceArray(0..1))
+        val newSession = twoBytesToInt(bytePublicKey.sliceArray(0..1))
+        if (newSession <= currentSession) {
+            return false
+        }
+        currentSession = newSession
         bytePublicKey = bytePublicKey.sliceArray(2 until bytePublicKey.size)
         val anotherKey = keyFactory.generatePublic(X509EncodedKeySpec(bytePublicKey)) as DHPublicKey
         keyAgreement.doPhase(anotherKey, true)
         addNewSession()
+        if (!channel.isEmpty) {
+            channel.receive()
+        }
+        return true
     }
 
     /**
@@ -134,5 +151,9 @@ class Encryptor {
         val offset = result[0]
         aesReceiveOffset = offset.toInt()
         return result.sliceArray(1 until result.size)
+    }
+
+    suspend fun block() {
+        channel.send(Unit)
     }
 }
