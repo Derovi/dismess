@@ -1,7 +1,7 @@
 package by.dismess.core.managers
 
 import by.dismess.core.model.UserID
-import by.dismess.core.chating.attachments.ImageAttachment
+import by.dismess.core.model.attachments.ImageAttachment
 import java.net.InetSocketAddress
 
 interface DataManager {
@@ -22,8 +22,8 @@ interface DataManager {
     suspend fun saveAvatar(avatar: ImageAttachment)
     suspend fun getAvatar(): ImageAttachment?
 
-    suspend fun setOwnIP(ip: InetSocketAddress)
-    suspend fun getOwnIP(): InetSocketAddress?
+    suspend fun saveMyIP(ip: InetSocketAddress)
+    suspend fun getMyIP(): InetSocketAddress?
 
     suspend fun saveLastIP(userID: UserID, ip: InetSocketAddress)
     suspend fun getLastIP(userID: UserID): InetSocketAddress?
