@@ -1,5 +1,6 @@
 package by.dismess.core.utils
 
+import by.dismess.core.model.UserID
 import java.io.ByteArrayOutputStream
 import java.math.BigInteger
 import java.nio.ByteBuffer
@@ -10,6 +11,8 @@ val md = MessageDigest.getInstance("MD5")
 fun hashMD5(input: String): BigInteger {
     return BigInteger(1, md.digest(input.toByteArray(Charsets.UTF_8)))
 }
+
+fun generateUserID(login: String): UserID = UserID(hashMD5(login))
 
 typealias UniqID = BigInteger
 
