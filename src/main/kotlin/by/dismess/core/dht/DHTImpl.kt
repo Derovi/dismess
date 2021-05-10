@@ -3,6 +3,7 @@ package by.dismess.core.dht
 import by.dismess.core.model.UserID
 import by.dismess.core.services.NetworkService
 import by.dismess.core.services.StorageService
+import by.dismess.core.utils.UniqID
 import java.math.BigInteger
 import java.net.InetSocketAddress
 
@@ -15,7 +16,7 @@ class DHTImpl(
     private var table = mutableListOf<Bucket>()
     private val ownerId: UserID = TODO()
 
-    override fun store(key: String, data: ByteArray) {
+    override suspend fun store(key: String, data: ByteArray) {
         TODO("Not yet implemented")
     }
 
@@ -32,11 +33,15 @@ class DHTImpl(
         TODO("Not yet implemented")
     }
 
-    override fun retrieve(key: String): ByteArray {
+    override suspend fun retrieve(key: String): ByteArray? {
         TODO("Not implemented yet")
     }
 
-    override fun find(userId: UserID): InetSocketAddress {
+    override suspend fun find(userId: UserID): InetSocketAddress {
+        TODO("Not yet implemented")
+    }
+
+    override suspend fun remember(users: List<Map.Entry<UniqID, InetSocketAddress>>) {
         TODO("Not yet implemented")
     }
 }

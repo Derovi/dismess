@@ -73,7 +73,7 @@ class ChatManagerImpl(
     override suspend fun loadChunk(chunkID: UniqID, chatID: UniqID): ChunkStored? {
         var result = storageService.load<ChunkStored>("chunks/$chunkID")
         if (result == null) {
-            val chunkRaw: ByteArray = dht.retrieve("chunks/$chunkID")
+            val chunkRaw: ByteArray = dht.retrieve("chunks/$chunkID") ?: return null
             val chatEncryptor = encryptors[chatID] ?: return null
             val decrypted = chatEncryptor.decrypt(chunkRaw)
             result = klaxon.parse<ChunkStored>(String(decrypted)) ?: return null
@@ -84,7 +84,7 @@ class ChatManagerImpl(
     override suspend fun loadFlow(flowID: UniqID): FlowStored? {
         var result = storageService.load<FlowStored>("flows/$flowID")
         if (result == null) {
-            result = klaxon.parse<FlowStored>(String(dht.retrieve("flows/$flowID")))
+            result = klaxon.parse<FlowStored>(String(dht.retrieve("flows/$flowID") ?: return null))
         }
         return result
     }

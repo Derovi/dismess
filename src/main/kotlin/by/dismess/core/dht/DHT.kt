@@ -6,7 +6,7 @@ import java.net.InetSocketAddress
 
 interface DHT {
     suspend fun store(key: String, data: ByteArray): Boolean
-    suspend fun retrieve(key: String): ByteArray
+    suspend fun retrieve(key: String): ByteArray?
     suspend fun find(userId: UserID): InetSocketAddress?
     suspend fun remember(users: List<Map.Entry<UniqID, InetSocketAddress>>)
 }
