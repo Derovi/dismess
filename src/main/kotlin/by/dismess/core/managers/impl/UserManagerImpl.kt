@@ -60,7 +60,7 @@ class UserManagerImpl(
                 return result
             }
         }
-        val newAddress = dht.find(target) // try to find new address
+        val newAddress = dht.find(target) ?: return null // try to find new address
         if (newAddress == savedIP) {
             return null
         }

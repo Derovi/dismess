@@ -14,8 +14,8 @@ import java.lang.Integer.max
  * @see Chunk
  */
 class Flow(
-        val chatManager: ChatManager,
-        var stored: FlowStored
+    val chatManager: ChatManager,
+    var stored: FlowStored
 ) : Element {
 
     val chunks = List<Chunk?>(stored.chunkCount) { null }
@@ -29,8 +29,10 @@ class Flow(
             return null
         }
         if (chunks[idx] == null) {
-            chunks[idx] = Chunk(chatManager,
-                    chatManager.loadChunk(ChunkID(id, idx))?: return null)
+            chunks[idx] = Chunk(
+                chatManager,
+                chatManager.loadChunk(ChunkID(id, idx)) ?: return null
+            )
         }
         return chunks[idx]
     }

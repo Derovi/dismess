@@ -10,8 +10,8 @@ import by.dismess.core.chating.elements.stored.ChunkStored
  * Incomplete chunk is the last one, it is mutable
  */
 class Chunk(
-        val chatManager: ChatManager,
-        stored: ChunkStored
+    val chatManager: ChatManager,
+    stored: ChunkStored
 ) : Element {
     var storedSize = stored.messages.size
 
@@ -24,6 +24,7 @@ class Chunk(
         const val BYTE_SIZE_FRONTIER = 64500
     }
 
+    val id = stored.id
     val messages = stored.messages
 
     var byteSize = 0
@@ -46,7 +47,7 @@ class Chunk(
         if (storedSize == messages.size) {
             return
         }
-        chatManager.acceptChunk(ChunkStored(messages))
+        chatManager.acceptChunk(ChunkStored(id, messages))
         storedSize = messages.size
     }
 
@@ -54,7 +55,7 @@ class Chunk(
         if (storedSize == messages.size) {
             return true
         }
-        if (!chatManager.persistChunk(ChunkStored(messages))) {
+        if (!chatManager.persistChunk(ChunkStored(id, messages))) {
             return false
         }
         storedSize = messages.size
