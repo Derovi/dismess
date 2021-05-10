@@ -1,29 +1,16 @@
 package by.dismess.core.utils
 
-import java.io.ByteArrayOutputStream
+import by.dismess.core.model.UserID
 import java.math.BigInteger
 import java.nio.ByteBuffer
 import java.security.MessageDigest
 
-val md = MessageDigest.getInstance("MD5")
-
 fun hashMD5(input: String): BigInteger {
+    val md = MessageDigest.getInstance("MD5")
     return BigInteger(1, md.digest(input.toByteArray(Charsets.UTF_8)))
 }
 
-typealias UniqID = BigInteger
-
-fun groupID(vararg idList: UniqID): UniqID {
-    val outputStream = ByteArrayOutputStream()
-    // TODO fix
-    for (id in idList) {
-        outputStream.writeBytes(id.toByteArray())
-    }
-    return UniqID(1, md.digest(outputStream.toByteArray()))
-}
-
-val Int.uniqID: BigInteger
-    get() = UniqID.valueOf(this.toLong())
+fun generateUserID(login: String): UserID = UserID(hashMD5(login))
 
 fun twoBytesToInt(number: ByteArray): Int = (number[0].toInt() and 0xff shl 8) or
     (number[1].toInt() and 0xff)
