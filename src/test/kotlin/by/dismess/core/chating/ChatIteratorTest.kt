@@ -172,34 +172,4 @@ class ChatIteratorTest : KoinTest {
             Assert.assertArrayEquals(longArrayOf(1, 2, 3, 4, 3, 4, 5, 6, 7), dates.toLongArray())
         }
     }
-
-    @Test
-    fun testStress() {
-        runBlocking {
-            val numberOfFlows = 15
-            val msgIterators = mutableListOf<MessageIterator>()
-            val dates = mutableListOf<Long>()
-            for (i in 0 until numberOfFlows) {
-                val msgDates = MutableList(Random.nextInt(1, 100)) { Random.nextLong(0, 10000) }
-                msgDates.sort()
-                dates.addAll(dates.size, msgDates)
-                msgIterators.add(initMessageIterator(msgDates))
-            }
-            dates.sort()
-            val chatIterator = ChatIterator.create(msgIterators)
-            var index = 0
-            repeat(10000) {
-                val isNext = Random.nextBoolean()
-                if (isNext) {
-                    index = min(index + 1, dates.lastIndex)
-                    chatIterator.next()
-                    Assert.assertEquals(dates[index], chatIterator.value.date.time)
-                } else {
-                    index = max(index - 1, 0)
-                    chatIterator.previous()
-                    Assert.assertEquals(dates[index], chatIterator.value.date.time)
-                }
-            }
-        }
-    }
 }

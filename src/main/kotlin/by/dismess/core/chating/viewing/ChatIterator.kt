@@ -13,6 +13,11 @@ class ChatIterator(val flows: MutableList<MessageIterator>) : MessageIterator {
         private set
 
     companion object {
+        private suspend fun nextMessageInfo(flow: MessageIterator): MessageInfo {
+            val hasNext = flow.next()
+            return MessageInfo(flow.value, !hasNext)
+        }
+
         /**
          * Motivation:
          * Kotlin do not support suspending constructors
@@ -34,8 +39,7 @@ class ChatIterator(val flows: MutableList<MessageIterator>) : MessageIterator {
                 val hasPrev = chatIterator.flows[i].previous()
                 chatIterator.previousLayer.add(MessageInfo(chatIterator.flows[i].value, !hasPrev))
                 if (hasPrev) {
-                    val hasNext = chatIterator.flows[i].next()
-                    chatIterator.nextLayer.add(MessageInfo(chatIterator.flows[i].value, !hasNext))
+                    chatIterator.nextLayer.add(nextMessageInfo(chatIterator.flows[i]))
                 } else {
                     chatIterator.nextLayer.add(MessageInfo(chatIterator.flows[i].value, false))
                 }
@@ -46,8 +50,7 @@ class ChatIterator(val flows: MutableList<MessageIterator>) : MessageIterator {
             if (hasPrev) {
                 chatIterator.flows[curInd].next()
             }
-            val hasNext = chatIterator.flows[curInd].next()
-            chatIterator.nextLayer[curInd] = MessageInfo(chatIterator.flows[curInd].value, !hasNext)
+            chatIterator.nextLayer[curInd] = nextMessageInfo(chatIterator.flows[curInd])
             return chatIterator
         }
     }
