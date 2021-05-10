@@ -8,12 +8,4 @@ class Bucket(
 ) {
     val idToIP = mutableMapOf<UserID, InetSocketAddress>()
     var lastPingTime = System.currentTimeMillis()
-
-    fun printBucketData() {
-        println("Borders: " + border.left + " " + border.right)
-        println("Users count: ${idToIP.size}")
-        for (user in idToIP) {
-            println("User: " + user.key + " " + user.value)
-        }
-    }
 }

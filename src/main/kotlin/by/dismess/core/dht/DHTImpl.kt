@@ -12,11 +12,12 @@ import java.net.InetSocketAddress
 import java.util.TreeMap
 
 const val BUCKET_SIZE = 8
-const val PING_TIMER = 10 * 60000
+const val PING_INTERVAL = 10 * 60000
 const val MAX_FIND_ITERATIONS = 100
 const val MAX_FIND_ATTEMPTS = 3
 const val FIND_FRONT = 10
 const val STORE_COPIES_COUNT = 10
+val RIGHT_BUCKET_BORDER = BigInteger.TWO.pow(160)
 
 class DHTImpl(
     val networkService: NetworkService,
@@ -28,7 +29,7 @@ class DHTImpl(
     private var usersTable = mutableListOf<Bucket>()
 
     init {
-        val bucket = Bucket(BucketBorder(BigInteger.ONE, BigInteger.TWO.pow(160)))
+        val bucket = Bucket(BucketBorder(BigInteger.ONE, RIGHT_BUCKET_BORDER))
         bucket.idToIP[ownerID] = ownerIP
         usersTable.add(bucket)
         registerGetHandlers()
@@ -81,7 +82,7 @@ class DHTImpl(
             return
         }
 
-        if (System.currentTimeMillis() - bucket.lastPingTime > PING_TIMER) {
+        if (System.currentTimeMillis() - bucket.lastPingTime > PING_INTERVAL) {
             pingBucket(bucket)
         }
 
