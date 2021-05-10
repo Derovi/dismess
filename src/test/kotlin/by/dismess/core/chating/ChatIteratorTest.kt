@@ -8,7 +8,10 @@ import kotlinx.coroutines.runBlocking
 import org.junit.Assert
 import org.junit.Test
 import org.koin.test.KoinTest
+import java.lang.Integer.max
+import java.lang.Integer.min
 import java.util.Date
+import kotlin.random.Random
 
 class ChatIteratorTest : KoinTest {
 
@@ -45,8 +48,8 @@ class ChatIteratorTest : KoinTest {
         for (date in dates) {
             val message = Message(
                 Date(date),
-                generateUserID(date.toString()).rawID,
-                generateUserID(date.toString()).rawID,
+                generateUserID(date.toString() + Random.nextInt()).rawID,
+                generateUserID(date.toString() + Random.nextInt()).rawID,
                 date.toString()
             )
             result.add(message)
@@ -167,6 +170,69 @@ class ChatIteratorTest : KoinTest {
             chatIterator.next()
             dates.add(chatIterator.value.date.time)
             Assert.assertArrayEquals(longArrayOf(1, 2, 3, 4, 3, 4, 5, 6, 7), dates.toLongArray())
+        }
+    }
+
+    @Test
+    fun testAnother() {
+        runBlocking {
+            val firstMsg = initMessageIterator(mutableListOf(3, 4, 4, 4))
+            val secondMsg = initMessageIterator(mutableListOf(0, 1, 1, 1))
+            val thirdMsg = initMessageIterator(mutableListOf(2, 3, 4, 6))
+            val chatIterator = ChatIterator.create(firstMsg, secondMsg, thirdMsg)
+            val dates = mutableListOf<Long>()
+            chatIterator.next()
+            dates.add(chatIterator.value.date.time)
+            chatIterator.previous()
+            dates.add(chatIterator.value.date.time)
+            chatIterator.previous()
+            dates.add(chatIterator.value.date.time)
+            chatIterator.next()
+            dates.add(chatIterator.value.date.time)
+            Assert.assertArrayEquals(longArrayOf(1, 0, 0, 1), dates.toLongArray())
+        }
+    }
+
+    @Test
+    fun testStress() {
+        runBlocking {
+            repeat(10000) {
+                val numberOfFlows = 3
+                val msgIterators = mutableListOf<MessageIterator>()
+                val dates = mutableListOf<Long>()
+                for (i in 0 until numberOfFlows) {
+                    val msgDates = MutableList(Random.nextInt(90, 100)) { Random.nextLong(0, 100) }
+//                    println(msgDates.size)
+                    msgDates.sort()
+                    dates.addAll(dates.size, msgDates)
+                    msgIterators.add(initMessageIterator(msgDates))
+                }
+                dates.sort()
+                val chatIterator = ChatIterator.create(msgIterators)
+                var index = 0
+                var counter = 0
+                val actions = mutableListOf<Boolean>()
+                repeat(20) {
+                    val isNext = Random.nextBoolean()
+                    actions.add(isNext)
+                    ++counter
+                    if (isNext) {
+                        index = min(index + 1, dates.lastIndex)
+                        chatIterator.next()
+                        if (dates[index] != chatIterator.value.date.time) {
+                            println(counter)
+                        }
+                        Assert.assertEquals(dates[index], chatIterator.value.date.time)
+                    } else {
+                        index = max(index - 1, 0)
+                        chatIterator.previous()
+                        if (dates[index] != chatIterator.value.date.time) {
+                            println(counter)
+                        }
+                        Assert.assertEquals(dates[index], chatIterator.value.date.time)
+                    }
+                }
+            }
         }
     }
 }

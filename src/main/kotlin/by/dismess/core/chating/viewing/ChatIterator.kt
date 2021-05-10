@@ -58,9 +58,12 @@ class ChatIterator(val flows: MutableList<MessageIterator>) : MessageIterator {
     override suspend fun next(): Boolean {
         if (!lastActionIsNext) {
             lastActionIsNext = true
+            if (flows[valueFlowInd].value != value) {
+                flows[valueFlowInd].next()
+            }
             flows[valueFlowInd].next()
             for (flow in flows) {
-                if (flow.value.date <= value.date) {
+                if (flow.value.date < value.date) {
                     flow.next()
                 }
             }
@@ -88,9 +91,12 @@ class ChatIterator(val flows: MutableList<MessageIterator>) : MessageIterator {
     override suspend fun previous(): Boolean {
         if (lastActionIsNext) {
             lastActionIsNext = false
+            if (flows[valueFlowInd].value != value) {
+                flows[valueFlowInd].previous()
+            }
             flows[valueFlowInd].previous()
             for (flow in flows) {
-                if (flow.value.date >= value.date) {
+                if (flow.value.date > value.date) {
                     flow.previous()
                 }
             }
