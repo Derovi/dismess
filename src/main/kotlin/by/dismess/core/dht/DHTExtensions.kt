@@ -43,4 +43,4 @@ suspend fun DHT.store(key: String, data: Any) {
     this.store(key, klaxon.toJsonString(data).toByteArray())
 }
 
-suspend inline fun <reified T> DHT.load(key: String) = klaxon.parse<T>(String(this.retrieve(key)))
+suspend inline fun <reified T> DHT.load(key: String) = klaxon.parse<T>(String(this.retrieve(key) ?: ByteArray(0)))

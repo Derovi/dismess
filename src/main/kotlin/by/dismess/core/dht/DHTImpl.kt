@@ -56,8 +56,7 @@ class DHTImpl(
         }
 
         networkService.registerGet("DHT/Retrieve") { message ->
-            val data = message.data ?: return@registerGet
-            val key = gson.fromJson(data, String::class.java) ?: return@registerGet
+            val key = message.data ?: return@registerGet
             val responseData = storageService.load<ByteArray>(key)
             val response = gson.toJson(responseData)
             result(response)
@@ -148,19 +147,21 @@ class DHTImpl(
         return nearestUsers
     }
 
-    override suspend fun store(key: String, data: ByteArray) {
+    override suspend fun store(key: String, data: ByteArray): Boolean {
         val dataOwner = generateUserID(key)
         val storingUsers = findNearestNodes(dataOwner, STORE_COPIES_COUNT)
         val request = StoreRequest(key, data)
+        var isStored = false
         for (user in storingUsers) {
-            networkService.sendPost(user.value, "DHT/Store", request)
+            isStored = isStored || networkService.sendPost(user.value, "DHT/Store", request)
         }
+        return isStored
     }
 
-    override suspend fun retrieve(key: String): ByteArray {
+    override suspend fun retrieve(key: String): ByteArray? {
         val target = generateUserID(key)
         val storingUsers = findNearestNodes(target, STORE_COPIES_COUNT)
-        var data = ByteArray(0)
+        var data: ByteArray? = null
         for (user in storingUsers) {
             val response = networkService.sendGet(user.value, "DHT/Retrieve", key) ?: continue
             data = gson.fromJson(response, ByteArray::class.java) ?: continue

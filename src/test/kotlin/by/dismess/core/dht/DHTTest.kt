@@ -10,8 +10,6 @@ import org.junit.Assert
 import org.junit.Test
 import org.koin.test.KoinTest
 import java.net.InetSocketAddress
-import kotlin.math.max
-import kotlin.math.min
 import kotlin.random.Random
 
 class DHTTest : KoinTest {
@@ -124,6 +122,70 @@ class DHTTest : KoinTest {
             val targetAddress = usersList[target].address
             val findResult = runBlocking { usersList[user].DHT.find(targetID) }
             Assert.assertEquals(findResult, targetAddress)
+        }
+    }
+
+    @Test
+    fun storeSimpleTest() {
+        val network = VirtualNetwork()
+
+        val alice = TestUser("Alice", InetSocketAddress("228.192.201.1", 1234), network)
+        val bob = TestUser("Bob", InetSocketAddress("144.169.196.225", 4321), network)
+        runBlocking { bob.DHT.connectTo(alice.id, alice.address) }
+
+        val message = "Very interesting text"
+        Assert.assertTrue(runBlocking { alice.DHT.store("Secrete message", message.toByteArray()) })
+
+        val aliceResponse = String(runBlocking { alice.DHT.retrieve("Secrete message") } ?: ByteArray(0))
+        val bobResponse = String(runBlocking { bob.DHT.retrieve("Secrete message") } ?: ByteArray(0))
+        Assert.assertEquals(message, aliceResponse)
+        Assert.assertEquals(message, bobResponse)
+
+        val emptyResponse = String(runBlocking { alice.DHT.retrieve("Wrong key") } ?: ByteArray(0))
+        Assert.assertEquals(String(), emptyResponse)
+    }
+
+    @Test
+    fun storeTest() {
+        val network = VirtualNetwork()
+
+        val firstUser = TestUser("Boss of this gym", InetSocketAddress("228.228.228.228", 2288), network)
+        val usersList = mutableListOf<TestUser>(firstUser)
+
+        val loginValidate = mutableMapOf<String, Int>()
+        for (i in 1..1000) {
+            var randomLogin = getRandomString(Random.nextInt(10, 60))
+            while (loginValidate.containsKey(randomLogin)) { randomLogin = getRandomString(Random.nextInt(10, 60)) }
+            loginValidate[randomLogin] = 1
+            var randomIP = Random.nextInt(256).toString()
+            repeat(3) {
+                randomIP += "." + Random.nextInt(256)
+            }
+            val randomAddress = InetSocketAddress(randomIP, Random.nextInt(1000, 10000))
+            usersList.add(TestUser(randomLogin, randomAddress, network))
+            val randomUser = usersList[Random.nextInt(i)]
+            runBlocking { usersList[i].DHT.connectTo(randomUser.id, randomUser.address) }
+        }
+
+        val data = mutableMapOf<String, String>()
+        for (i in 1..1000) {
+            val key = getRandomString(Random.nextInt(50, 100))
+            val message = getRandomString(Random.nextInt(100))
+            data[key] = message
+            Assert.assertTrue(runBlocking { firstUser.DHT.store(key, message.toByteArray()) })
+        }
+
+        for (request in data) {
+            val response = runBlocking { firstUser.DHT.retrieve(request.key) }
+            val message = String(response ?: ByteArray(0))
+            Assert.assertEquals(request.value, message)
+        }
+
+        for (i in 1..100) {
+            val wrongKey = getRandomString(Random.nextInt(50, 100))
+            val response = runBlocking { firstUser.DHT.retrieve(wrongKey) }
+            val message = String(response ?: ByteArray(0))
+            Assert.assertEquals(message, String())
         }
     }
 }
