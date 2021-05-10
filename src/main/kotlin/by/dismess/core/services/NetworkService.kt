@@ -7,11 +7,11 @@ import by.dismess.core.utils.gson
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.suspendCancellableCoroutine
-import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.withTimeoutOrNull
 import java.net.InetSocketAddress
 import java.util.UUID
 import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.CopyOnWriteArrayList
 import kotlin.coroutines.resume
 
 /**
@@ -29,20 +29,13 @@ class NetworkService(
      * Tag to list of registered handlers
      * @note You can use several handlers with one tag for debugging
      */
-    val mutex = Mutex()
-//    private val getHandlers = mutableMapOf<String, MutableList<GetHandler>>()
-    private val getHandlers = ConcurrentHashMap<String, MutableList<GetHandler>>()
-
-    //    private val postHandlers = mutableMapOf<String, MutableList<PostHandler>>()
-    private val postHandlers = ConcurrentHashMap<String, MutableList<PostHandler>>()
-
-    //    private val responseHandlers = mutableMapOf<String, MutableList<ResponseHandler>>()
-    private val responseHandlers = ConcurrentHashMap<String, MutableList<ResponseHandler>>()
+    private val getHandlers = ConcurrentHashMap<String, CopyOnWriteArrayList<GetHandler>>()
+    private val postHandlers = ConcurrentHashMap<String, CopyOnWriteArrayList<PostHandler>>()
+    private val responseHandlers = ConcurrentHashMap<String, CopyOnWriteArrayList<ResponseHandler>>()
 
     init {
         networkInterface.setMessageReceiver { sender, data ->
             val message = gson.fromJson(String(data), NetworkMessage::class.java) ?: return@setMessageReceiver
-//           val message = klaxon.parse<NetworkMessage>(String(data)) ?: return@setMessageReceiver
             if (message.type == MessageType.POST) {
                 GlobalScope.launch { // send approve
                     message.verificationTag?.run {
@@ -82,18 +75,17 @@ class NetworkService(
      * @example DHT has tag "DHT"
      */
     fun registerPost(tag: String, handler: PostHandler): PostHandler {
-        postHandlers.getOrPut(tag) { mutableListOf() }.add(handler)
+        postHandlers.getOrPut(tag) { CopyOnWriteArrayList() }.add(handler)
         return handler
     }
 
     fun registerGet(tag: String, handler: GetHandler): GetHandler {
-        getHandlers.getOrPut(tag) { mutableListOf() }.add(handler)
+        getHandlers.getOrPut(tag) { CopyOnWriteArrayList() }.add(handler)
         return handler
     }
 
     suspend fun sendPost(address: InetSocketAddress, tag: String, data: Any, timeout: Long = 1000): Boolean =
         sendPost(address, tag, gson.toJson(data), timeout)
-//        sendPost(address, tag, klaxon.toJsonString(data), timeout)
 
     suspend fun sendPost(address: InetSocketAddress, tag: String, timeout: Long = 1000): Boolean =
         sendRequest(address, NetworkMessage(MessageType.POST, tag), timeout) != null
@@ -103,7 +95,6 @@ class NetworkService(
 
     suspend fun sendGet(address: InetSocketAddress, tag: String, data: Any, timeout: Long = 1000): String? =
         sendGet(address, tag, gson.toJson(data), timeout)
-//        sendGet(address, tag, klaxon.toJsonString(data), timeout)
 
     suspend fun sendGet(address: InetSocketAddress, tag: String, timeout: Long = 1000): String? =
         sendRequest(address, NetworkMessage(MessageType.GET, tag), timeout)?.data
@@ -122,15 +113,13 @@ class NetworkService(
     ): NetworkMessage? {
         message.verificationTag = randomTag()
         var handler: ResponseHandler? = null
-
         val result = withTimeoutOrNull<NetworkMessage>(timeout) {
             suspendCancellableCoroutine { continuation ->
                 handler = { message: NetworkMessage ->
                     continuation.resume(message)
-                }.also { responseHandlers.getOrPut(message.verificationTag!!) { mutableListOf() }.add(it) }
+                }.also { responseHandlers.getOrPut(message.verificationTag!!) { CopyOnWriteArrayList() }.add(it) }
                 GlobalScope.launch {
                     networkInterface.sendRawMessage(address, gson.toJson(message).toByteArray())
-//                    networkInterface.sendRawMessage(address, klaxon.toJsonString(message).toByteArray())
                 }
             }
         }
@@ -140,7 +129,6 @@ class NetworkService(
 
     private suspend fun sendResponse(address: InetSocketAddress, message: NetworkMessage) {
         networkInterface.sendRawMessage(address, gson.toJson(message).toByteArray())
-//        networkInterface.sendRawMessage(address, klaxon.toJsonString(message).toByteArray())
     }
 
     inner class GetContext(val target: InetSocketAddress, val verificationTag: String?) {

@@ -14,6 +14,8 @@ import java.util.TreeMap
 const val BUCKET_SIZE = 8
 const val PING_TIMER = 10 * 60000
 const val MAX_FIND_ITERATIONS = 100
+const val MAX_FIND_ATTEMPTS = 3
+const val FIND_FRONT = 10
 const val STORE_COPIES_COUNT = 10
 
 class DHTImpl(
@@ -47,10 +49,10 @@ class DHTImpl(
         networkService.registerGet("DHT/Find") { message ->
             val data = message.data ?: return@registerGet
             val request = gson.fromJson(data, FindRequest::class.java) ?: return@registerGet
-            val bucket = tableMutex.withLock { getNearestUserBucket(request.targetUser) }
+            val bucket = tableMutex.withLock { getUserBucket(request.targetUser) }
             val response = gson.toJson(bucket)
-            tableMutex.withLock { trySaveUser(request.sender, message.sender) }
             result(response)
+            tableMutex.withLock { trySaveUser(request.sender, message.sender) }
         }
 
         networkService.registerGet("DHT/Retrieve") { message ->
@@ -63,14 +65,12 @@ class DHTImpl(
     }
 
     private suspend fun pingBucket(bucket: Bucket) {
-        tableMutex.lock()
         for (user in bucket.idToIP) {
             if (!networkService.sendPost(user.value, "DHT/Ping")) {
                 bucket.idToIP.remove(user)
             }
         }
         bucket.lastPingTime = System.currentTimeMillis()
-        tableMutex.unlock()
     }
 
     // Executed under mutex
@@ -99,29 +99,16 @@ class DHTImpl(
             bucket.idToIP[user] = address
         }
     }
+
     // Executed under mutex
     private fun getUserBucket(userId: UserID): Bucket = usersTable.first { userId inBucket it }
-    // Executed under mutex
-    private fun getNearestUserBucket(userID: UserID): Bucket {
-        val potentialBucketIndex = usersTable.indexOfFirst { userID inBucket it }
-        val leftIndex = usersTable.subList(0, potentialBucketIndex).indexOfLast { it.idToIP.isNotEmpty() }
-        val rightIndex =
-            usersTable.subList(potentialBucketIndex, usersTable.size).indexOfFirst { it.idToIP.isNotEmpty() }
-        return when {
-            leftIndex == -1 -> usersTable[rightIndex]
-            rightIndex == -1 -> usersTable[leftIndex]
-            potentialBucketIndex - leftIndex < rightIndex - potentialBucketIndex -> usersTable[leftIndex]
-            else -> usersTable[rightIndex]
-        }
-    }
 
     private suspend fun findNearestNodes(
         target: UserID,
-        count: Int,
-        verbose: Boolean = false
+        count: Int
     ): MutableMap<UserID, InetSocketAddress> {
         val nearestUsers = mutableMapOf<UserID, InetSocketAddress>()
-        nearestUsers.putAll(tableMutex.withLock { getNearestUserBucket(target).idToIP })
+        nearestUsers.putAll(tableMutex.withLock { getUserBucket(target).idToIP })
 
         var findIterations = 0
 
@@ -132,18 +119,12 @@ class DHTImpl(
                 else -> return@Comparator 0
             }
         }
+        val buffer = TreeMap<UserID, InetSocketAddress>(mapComparator)
 
         val previousIterationResult = mutableMapOf<UserID, InetSocketAddress>()
         while (findIterations < MAX_FIND_ITERATIONS && !(nearestUsers equalTo previousIterationResult)) {
-            if (verbose) {
-                println("Iteration: $findIterations")
-            }
-
-            val buffer = TreeMap<UserID, InetSocketAddress>(mapComparator)
+            buffer.clear()
             for (user in nearestUsers) {
-                if (user.key == ownerID) {
-                    continue
-                }
                 val request = FindRequest(target, ownerID)
                 val response = networkService.sendGet(user.value, "DHT/Find", request) ?: continue
                 val responseBucket = gson.fromJson(response, Bucket::class.java) ?: continue
@@ -155,33 +136,16 @@ class DHTImpl(
             nearestUsers.clear()
 
             buffer.forEach {
-                if (verbose) {
-                    println("Distance: ${it.key distanceTo target}")
-                    println("Try save it")
-                }
                 tableMutex.withLock { trySaveUser(it.key, it.value) }
                 if (nearestUsers.size < count) {
                     nearestUsers[it.key] = it.value
                 }
             }
-            if (verbose) {
-                println()
-            }
+
             ++findIterations
         }
 
         return nearestUsers
-    }
-
-    fun printTable() {
-        println()
-        println("Owner: $ownerID")
-        for (bucket in usersTable) {
-            println("-----------------------------------------------------------------")
-            bucket.printBucketData()
-            println("-----------------------------------------------------------------")
-        }
-        println()
     }
 
     override suspend fun store(key: String, data: ByteArray) {
@@ -207,26 +171,21 @@ class DHTImpl(
 
     override suspend fun connectTo(userID: UserID, address: InetSocketAddress) {
         tableMutex.withLock { trySaveUser(userID, address) }
-//        verboseFind(ownerID)
         find(ownerID)
     }
 
     override suspend fun find(userID: UserID): InetSocketAddress? {
-        val potentialUser = findNearestNodes(userID, 10).toList()[0]
-        return if (potentialUser.first == userID) {
-            potentialUser.second
-        } else {
-            null
+        var findAttempt = 0
+        var nearestUsers = findNearestNodes(userID, FIND_FRONT).toList()
+        while (nearestUsers.isEmpty() && findAttempt < MAX_FIND_ATTEMPTS) {
+            ++findAttempt
+            nearestUsers = findNearestNodes(userID, FIND_FRONT).toList()
         }
-    }
 
-    suspend fun verboseFind(userID: UserID): InetSocketAddress? {
-        println("Starting distance: ${ownerID distanceTo userID}")
-        val potentialUser = findNearestNodes(userID, 10, true).toList()[0]
-        return if (potentialUser.first == userID) {
-            potentialUser.second
-        } else {
-            null
+        return when {
+            nearestUsers.isEmpty() -> null
+            nearestUsers[0].first == userID -> nearestUsers[0].second
+            else -> null
         }
     }
 }

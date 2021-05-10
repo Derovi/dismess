@@ -10,6 +10,8 @@ import org.junit.Assert
 import org.junit.Test
 import org.koin.test.KoinTest
 import java.net.InetSocketAddress
+import kotlin.math.max
+import kotlin.math.min
 import kotlin.random.Random
 
 class DHTTest : KoinTest {
@@ -112,15 +114,16 @@ class DHTTest : KoinTest {
             runBlocking { usersList[i].DHT.connectTo(randomUser.id, randomUser.address) }
         }
 
-//        for (i in 1..1) {
-//            val user = Random.nextInt(usersList.size)
-//            var target = Random.nextInt(usersList.size)
-//            while (user == target) {
-//                target = Random.nextInt(usersList.size)
-//            }
-//            val targetID = usersList[target].id
-//            val targetAddress = usersList[target].address
-//            Assert.assertEquals(runBlocking { usersList[user].DHT.verboseFind(targetID) }, targetAddress)
-//        }
+        for (i in 1..1000) {
+            val user = Random.nextInt(usersList.size)
+            var target = Random.nextInt(usersList.size)
+            while (user == target) {
+                target = Random.nextInt(usersList.size)
+            }
+            val targetID = usersList[target].id
+            val targetAddress = usersList[target].address
+            val findResult = runBlocking { usersList[user].DHT.find(targetID) }
+            Assert.assertEquals(findResult, targetAddress)
+        }
     }
 }

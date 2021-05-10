@@ -2,7 +2,6 @@ package by.dismess.core.dht
 
 import by.dismess.core.klaxon
 import by.dismess.core.model.UserID
-import java.math.BigInteger
 
 data class FindRequest(val targetUser: UserID, val sender: UserID)
 data class StoreRequest(val key: String, val data: ByteArray)
@@ -26,17 +25,18 @@ infix fun <K, V> MutableMap<K, V>.equalTo(map: MutableMap<K, V>): Boolean {
 }
 
 fun splitBucket(bucket: Bucket): Pair<Bucket, Bucket> {
-    val bucketBorderMid = (bucket.border.left + bucket.border.right) / BigInteger.TWO
-    val leftHalf = Bucket(BucketBorder(bucket.border.left, bucketBorderMid))
-    val rightHalf = Bucket(BucketBorder(leftHalf.border.right, bucket.border.right))
+    val usersList = bucket.idToIP.toList().sortedBy { it.first.rawID }
+    val newBucketBorder = usersList[usersList.size / 2].first.rawID
+    val leftBucket = Bucket(BucketBorder(bucket.border.left, newBucketBorder))
+    val rightBucket = Bucket(BucketBorder(newBucketBorder, bucket.border.right))
     bucket.idToIP.map {
         when {
-            it.key inBucket leftHalf -> leftHalf.idToIP.put(it.key, it.value)
-            it.key inBucket rightHalf -> rightHalf.idToIP.put(it.key, it.value)
+            it.key inBucket leftBucket -> leftBucket.idToIP.put(it.key, it.value)
+            it.key inBucket rightBucket -> rightBucket.idToIP.put(it.key, it.value)
             else -> Unit
         }
     }
-    return Pair(leftHalf, rightHalf)
+    return Pair(leftBucket, rightBucket)
 }
 
 suspend fun DHT.store(key: String, data: Any) {
