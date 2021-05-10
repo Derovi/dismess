@@ -84,8 +84,7 @@ class Chat(
             val directSuccessful = async { chatManager.sendDirectMessage(otherID, message) }
             if (directSuccessful.await()) {
                 status = MessageStatus.DELIVERED
-                if (wasOffline.get()) {
-                    wasOffline.set(false)
+                if (wasOffline.getAndSet(false)) {
                     exchangeKey()
                 }
             } else if (persistSuccessful.await()) {
