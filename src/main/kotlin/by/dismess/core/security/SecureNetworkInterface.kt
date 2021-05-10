@@ -3,6 +3,7 @@ package by.dismess.core.security
 import by.dismess.core.outer.NetworkInterface
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import java.lang.IllegalArgumentException
 import java.net.InetSocketAddress
 
@@ -30,9 +31,9 @@ class SecureNetworkInterface(
 ) : NetworkInterface {
     private val sessionManager: SessionManager = SessionManager()
 
-    private fun tryUpdateKey(address: InetSocketAddress): ByteArray? = sessionManager.tryUpdateKey(address)
+    private suspend fun tryUpdateKey(address: InetSocketAddress): ByteArray? = sessionManager.tryUpdateKey(address)
 
-    private fun processData(
+    private suspend fun processData(
         sender: InetSocketAddress,
         data: ByteArray,
         receiver: (sender: InetSocketAddress, data: ByteArray) -> Unit
@@ -71,7 +72,7 @@ class SecureNetworkInterface(
     override fun setMessageReceiver(receiver: (sender: InetSocketAddress, data: ByteArray) -> Unit) {
         networkInterface.setMessageReceiver { sender: InetSocketAddress, data: ByteArray ->
             try {
-                processData(sender, data, receiver)
+                runBlocking { processData(sender, data, receiver) }
             } catch (_: IllegalArgumentException) {
             }
         }
