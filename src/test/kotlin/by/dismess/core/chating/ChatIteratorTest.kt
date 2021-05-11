@@ -176,9 +176,9 @@ class ChatIteratorTest : KoinTest {
     @Test
     fun testAnother() {
         runBlocking {
-            val firstMsg = initMessageIterator(mutableListOf(3, 4, 4, 4))
-            val secondMsg = initMessageIterator(mutableListOf(0, 1, 1, 1))
-            val thirdMsg = initMessageIterator(mutableListOf(2, 3, 4, 6))
+            val firstMsg = initMessageIterator(mutableListOf(1, 3, 6, 7))
+            val secondMsg = initMessageIterator(mutableListOf(0, 1, 2, 3))
+            val thirdMsg = initMessageIterator(mutableListOf(12, 17, 21, 24))
             val chatIterator = ChatIterator.create(firstMsg, secondMsg, thirdMsg)
             val dates = mutableListOf<Long>()
             chatIterator.next()
@@ -196,13 +196,12 @@ class ChatIteratorTest : KoinTest {
     @Test
     fun testStress() {
         runBlocking {
-            repeat(10000) {
-                val numberOfFlows = 3
+            repeat(10) {
+                val numberOfFlows = 15
                 val msgIterators = mutableListOf<MessageIterator>()
                 val dates = mutableListOf<Long>()
                 for (i in 0 until numberOfFlows) {
-                    val msgDates = MutableList(Random.nextInt(90, 100)) { Random.nextLong(0, 100) }
-//                    println(msgDates.size)
+                    val msgDates = MutableList(Random.nextInt(100, 10000)) { Random.nextLong(0, 100) }
                     msgDates.sort()
                     dates.addAll(dates.size, msgDates)
                     msgIterators.add(initMessageIterator(msgDates))
@@ -210,25 +209,15 @@ class ChatIteratorTest : KoinTest {
                 dates.sort()
                 val chatIterator = ChatIterator.create(msgIterators)
                 var index = 0
-                var counter = 0
-                val actions = mutableListOf<Boolean>()
-                repeat(20) {
+                repeat(1000000) {
                     val isNext = Random.nextBoolean()
-                    actions.add(isNext)
-                    ++counter
                     if (isNext) {
                         index = min(index + 1, dates.lastIndex)
                         chatIterator.next()
-                        if (dates[index] != chatIterator.value.date.time) {
-                            println(counter)
-                        }
                         Assert.assertEquals(dates[index], chatIterator.value.date.time)
                     } else {
                         index = max(index - 1, 0)
                         chatIterator.previous()
-                        if (dates[index] != chatIterator.value.date.time) {
-                            println(counter)
-                        }
                         Assert.assertEquals(dates[index], chatIterator.value.date.time)
                     }
                 }

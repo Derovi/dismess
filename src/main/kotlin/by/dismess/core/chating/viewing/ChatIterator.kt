@@ -1,6 +1,7 @@
 package by.dismess.core.chating.viewing
 
 import by.dismess.core.chating.elements.Message
+import java.util.*
 
 class ChatIterator(val flows: MutableList<MessageIterator>) : MessageIterator {
     data class MessageInfo(val message: Message, val isEnd: Boolean)
@@ -16,6 +17,14 @@ class ChatIterator(val flows: MutableList<MessageIterator>) : MessageIterator {
         private suspend fun nextMessageInfo(flow: MessageIterator): MessageInfo {
             val hasNext = flow.next()
             return MessageInfo(flow.value, !hasNext)
+        }
+
+        private fun flowLess(dateLhs: Date, dateRhs: Date, indLhs: Int, indRhs: Int): Boolean {
+            return dateLhs < dateRhs || (dateLhs == dateRhs && indLhs < indRhs)
+        }
+
+        private fun flowGreater(dateLhs: Date, dateRhs: Date, indLhs: Int, indRhs: Int): Boolean {
+            return dateLhs > dateRhs || (dateLhs == dateRhs && indLhs > indRhs)
         }
 
         /**
@@ -62,9 +71,9 @@ class ChatIterator(val flows: MutableList<MessageIterator>) : MessageIterator {
                 flows[valueFlowInd].next()
             }
             flows[valueFlowInd].next()
-            for (flow in flows) {
-                if (flow.value.date < value.date) {
-                    flow.next()
+            for (i in flows.indices) {
+                if (flowLess(flows[i].value.date, value.date, i, valueFlowInd)) {
+                    flows[i].next()
                 }
             }
         }
@@ -73,7 +82,8 @@ class ChatIterator(val flows: MutableList<MessageIterator>) : MessageIterator {
             if (nextLayer[i].isEnd) {
                 continue
             }
-            if (nextInd == null || nextLayer[i].message.date < nextLayer[nextInd].message.date) {
+            if (nextInd == null
+                || flowLess(nextLayer[i].message.date, nextLayer[nextInd].message.date, i, nextInd)) {
                 nextInd = i
             }
         }
@@ -95,9 +105,9 @@ class ChatIterator(val flows: MutableList<MessageIterator>) : MessageIterator {
                 flows[valueFlowInd].previous()
             }
             flows[valueFlowInd].previous()
-            for (flow in flows) {
-                if (flow.value.date > value.date) {
-                    flow.previous()
+            for (i in flows.indices) {
+                if (flowGreater(flows[i].value.date, value.date, i, valueFlowInd)) {
+                    flows[i].previous()
                 }
             }
         }
@@ -106,7 +116,8 @@ class ChatIterator(val flows: MutableList<MessageIterator>) : MessageIterator {
             if (previousLayer[i].isEnd) {
                 continue
             }
-            if (prevInd == null || previousLayer[i].message.date > previousLayer[prevInd].message.date) {
+            if (prevInd == null
+                || flowGreater(previousLayer[i].message.date, previousLayer[prevInd].message.date, i, prevInd)) {
                 prevInd = i
             }
         }
