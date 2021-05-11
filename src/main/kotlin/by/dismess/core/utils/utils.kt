@@ -43,8 +43,6 @@ fun twoBytesToInt(number: ByteArray): Int = (number[0].toInt() and 0xff shl 8) o
 fun intToBytes(number: Int, size: Int = 1): ByteArray =
     ByteBuffer.allocate(4).putInt(number).array().sliceArray((4 - size)..3)
 
-fun generateUserID(login: String): UserID = UserID(hashMD5(login))
-
 val gsonBuilder = GsonBuilder()
     .registerTypeAdapter(InetSocketAddress::class.java, InetSocketAddressConverter())
     .registerTypeAdapter(UserID::class.java, UserIDConverter())

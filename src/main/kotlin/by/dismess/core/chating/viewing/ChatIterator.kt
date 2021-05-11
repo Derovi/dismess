@@ -1,7 +1,7 @@
 package by.dismess.core.chating.viewing
 
 import by.dismess.core.chating.elements.Message
-import java.util.*
+import java.util.Date
 
 class ChatIterator(val flows: MutableList<MessageIterator>) : MessageIterator {
     data class MessageInfo(val message: Message, val isEnd: Boolean)
@@ -82,8 +82,9 @@ class ChatIterator(val flows: MutableList<MessageIterator>) : MessageIterator {
             if (nextLayer[i].isEnd) {
                 continue
             }
-            if (nextInd == null
-                || flowLess(nextLayer[i].message.date, nextLayer[nextInd].message.date, i, nextInd)) {
+            if (nextInd == null ||
+                flowLess(nextLayer[i].message.date, nextLayer[nextInd].message.date, i, nextInd)
+            ) {
                 nextInd = i
             }
         }
@@ -116,8 +117,9 @@ class ChatIterator(val flows: MutableList<MessageIterator>) : MessageIterator {
             if (previousLayer[i].isEnd) {
                 continue
             }
-            if (prevInd == null
-                || flowGreater(previousLayer[i].message.date, previousLayer[prevInd].message.date, i, prevInd)) {
+            if (prevInd == null ||
+                flowGreater(previousLayer[i].message.date, previousLayer[prevInd].message.date, i, prevInd)
+            ) {
                 prevInd = i
             }
         }

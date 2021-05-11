@@ -40,12 +40,13 @@ class StorageServiceTest : KoinTest {
         )
     }
 
+    data class DClass(var a: String, var b: Int)
+
     @Test
     fun test() {
         runBlocking {
             Assert.assertFalse(storageService.exists("erg"))
             Assert.assertNull(storageService.loadRaw(""))
-            data class DClass(var a: String, var b: Int)
             storageService.save("key", DClass("abacaba", 75656346))
             Assert.assertEquals(storageService.load<DClass>("key"), DClass("abacaba", 75656346))
             storageService.save("int", 4254545)
