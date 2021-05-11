@@ -100,7 +100,9 @@ class DHTTest : KoinTest {
         val loginValidate = mutableMapOf<String, Int>()
         for (i in 1..1000) {
             var randomLogin = getRandomString(Random.nextInt(10, 60))
-            while (loginValidate.containsKey(randomLogin)) { randomLogin = getRandomString(Random.nextInt(10, 60)) }
+            while (loginValidate.containsKey(randomLogin)) {
+                randomLogin = getRandomString(Random.nextInt(10, 60))
+            }
             loginValidate[randomLogin] = 1
             var randomIP = Random.nextInt(256).toString()
             repeat(3) {
@@ -155,7 +157,9 @@ class DHTTest : KoinTest {
         val loginValidate = mutableMapOf<String, Int>()
         for (i in 1..1000) {
             var randomLogin = getRandomString(Random.nextInt(10, 60))
-            while (loginValidate.containsKey(randomLogin)) { randomLogin = getRandomString(Random.nextInt(10, 60)) }
+            while (loginValidate.containsKey(randomLogin)) {
+                randomLogin = getRandomString(Random.nextInt(10, 60))
+            }
             loginValidate[randomLogin] = 1
             var randomIP = Random.nextInt(256).toString()
             repeat(3) {

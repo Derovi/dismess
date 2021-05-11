@@ -1,5 +1,6 @@
 package by.dismess.core.security
 
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import java.net.InetSocketAddress
 
 class SessionManager() {
@@ -12,7 +13,7 @@ class SessionManager() {
      * @return if key was updated not more than KEY_LIFETIME ms before, null is returned,
      * new key otherwise
      */
-    fun tryUpdateKey(address: InetSocketAddress): ByteArray? {
+    suspend fun tryUpdateKey(address: InetSocketAddress): ByteArray? {
         val now = System.currentTimeMillis()
         var protocolManager: ProtocolManager? = addressToProtocolManager[address]
         if (protocolManager == null) {
@@ -26,7 +27,7 @@ class SessionManager() {
         return null
     }
 
-    fun encrypt(address: InetSocketAddress, data: ByteArray): ByteArray =
+    suspend fun encrypt(address: InetSocketAddress, data: ByteArray): ByteArray =
         addressToProtocolManager.getValue(address).encrypt(data)
 
     /**
@@ -36,7 +37,8 @@ class SessionManager() {
      * type - whether data is a message, key with request to send it back or simple key,
      * data - processed data
      */
-    fun processData(address: InetSocketAddress, data: ByteArray): TypedData {
+    @ExperimentalCoroutinesApi
+    suspend fun processData(address: InetSocketAddress, data: ByteArray): TypedData {
         var protocolManager: ProtocolManager? = addressToProtocolManager[address]
         if (protocolManager == null) {
             protocolManager = ProtocolManager()

@@ -1,5 +1,6 @@
 package by.dismess.core.security
 
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.channels.Channel
 
 enum class DataType {
@@ -14,25 +15,30 @@ class ProtocolManager {
     var lastUpdateTime = System.currentTimeMillis()
     val channel: Channel<Unit> = Channel()
 
-    private fun decrypt(data: ByteArray): ByteArray = encryptor.decrypt(data)
+    private suspend fun decrypt(data: ByteArray): ByteArray = encryptor.decrypt(data)
 
-    private fun processKey(data: ByteArray): TypedData {
+    @ExperimentalCoroutinesApi
+    private suspend fun processKey(data: ByteArray): TypedData {
         val order = data[0]
         var type = DataType.SEND_BACK_KEY
         if (order == 1.toByte()) {
             type = DataType.KEY
         }
         encryptor.updateKey()
-        encryptor.setReceiverPublicKey(data.sliceArray(1 until data.size))
-        val protocolPrefix: ByteArray = byteArrayOf(1, 1)
-        return TypedData(type, protocolPrefix + encryptor.publicKeyBytes(updateSession = false))
+        var backOrder: Byte = 1
+        val updated = encryptor.setReceiverPublicKey(data.sliceArray(1 until data.size))
+        if (!updated) {
+            backOrder = 0
+        }
+        val protocolPrefix: ByteArray = byteArrayOf(1, backOrder)
+        return TypedData(type, protocolPrefix + encryptor.publicKeyBytes(updateSession = !updated))
     }
 
     /**
      * Init new session
      * @return 1 byte joined with new public key
      */
-    fun updateKey(): ByteArray {
+    suspend fun updateKey(): ByteArray {
         encryptor.updateKey()
         lastUpdateTime = System.currentTimeMillis()
         val order = 0.toByte()
@@ -42,13 +48,14 @@ class ProtocolManager {
     /**
      * @return 0 byte joined with encrypted message
      */
-    fun encrypt(data: ByteArray): ByteArray = byteArrayOf(0) + encryptor.encrypt(data)
+    suspend fun encrypt(data: ByteArray): ByteArray = byteArrayOf(0) + encryptor.encrypt(data)
 
     /**
      * Decide which type of message received: key or raw message and run appropriate handlers
      * @return null if message type is key, decrypted message otherwise
      */
-    fun processData(data: ByteArray): TypedData {
+    @ExperimentalCoroutinesApi
+    suspend fun processData(data: ByteArray): TypedData {
         if (data.first() == 1.toByte()) {
             return processKey(data.sliceArray(1 until data.size))
         }
