@@ -6,6 +6,7 @@ import by.dismess.core.services.NetworkService
 import by.dismess.core.services.StorageService
 import by.dismess.core.utils.generateUserID
 import by.dismess.core.utils.gson
+import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import java.math.BigInteger
@@ -18,12 +19,11 @@ const val MAX_FIND_ITERATIONS = 10
 const val MAX_FIND_ATTEMPTS = 3
 const val FIND_FRONT = 50
 const val STORE_COPIES_COUNT = 10
-val RIGHT_BUCKET_BORDER = BigInteger("2").pow(160)
+val RIGHT_BUCKET_BORDER: BigInteger = BigInteger("2").pow(160)
 
 class DHTImpl(
     val networkService: NetworkService,
-    val storageService: StorageService,
-    val dataManager: DataManager
+    val storageService: StorageService
 ) : DHT {
     private val tableMutex = Mutex()
     private var usersTable = mutableListOf<Bucket>()
@@ -32,15 +32,18 @@ class DHTImpl(
 
     init {
         val bucket = Bucket(BucketBorder(BigInteger.ONE, RIGHT_BUCKET_BORDER))
-//        bucket.idToIP[ownerID] = ownerIP
         usersTable.add(bucket)
         registerGetHandlers()
         registerPostHandlers()
     }
 
-//    private fun init() {
-//
-//    }
+    private fun initSelf(ownerID: UserID, ownerIP: InetSocketAddress) {
+        this.ownerID = ownerID
+        this.ownerIP = ownerIP
+        runBlocking {
+            trySaveUser(ownerID, ownerIP)
+        }
+    }
 
     private fun registerPostHandlers() {
         networkService.registerPost("DHT/Ping") {}
