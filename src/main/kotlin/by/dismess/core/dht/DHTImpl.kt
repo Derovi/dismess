@@ -17,7 +17,7 @@ const val MAX_FIND_ITERATIONS = 10
 const val MAX_FIND_ATTEMPTS = 3
 const val FIND_FRONT = 50
 const val STORE_COPIES_COUNT = 10
-val RIGHT_BUCKET_BORDER = BigInteger.TWO.pow(160)
+val RIGHT_BUCKET_BORDER = BigInteger("2").pow(160)
 
 class DHTImpl(
     val networkService: NetworkService,
