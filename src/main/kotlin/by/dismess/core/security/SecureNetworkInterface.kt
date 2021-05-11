@@ -1,6 +1,7 @@
 package by.dismess.core.security
 
 import by.dismess.core.outer.NetworkInterface
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
@@ -33,6 +34,7 @@ class SecureNetworkInterface(
 
     private suspend fun tryUpdateKey(address: InetSocketAddress): ByteArray? = sessionManager.tryUpdateKey(address)
 
+    @ExperimentalCoroutinesApi
     private suspend fun processData(
         sender: InetSocketAddress,
         data: ByteArray,
