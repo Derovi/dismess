@@ -13,7 +13,7 @@ class AppImpl(
 ) : App {
     override suspend fun register(login: String, invite: Invite): Unit = coroutineScope {
         GlobalScope.launch { dataManager.saveLogin(login) }
-        GlobalScope.launch { dht.connectTo(UserID(invite.users.first().key), invite.users.first().value) }
+        GlobalScope.launch { dht.connectTo(UserID(invite.userId), invite.address) }
     }
 
     override suspend fun isRegistered(): Boolean = dataManager.getLogin() != null
