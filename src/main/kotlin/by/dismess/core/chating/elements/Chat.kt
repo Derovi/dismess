@@ -3,13 +3,15 @@ package by.dismess.core.chating.elements
 import by.dismess.core.chating.ChatManager
 import by.dismess.core.chating.MessageStatus
 import by.dismess.core.chating.elements.id.FlowID
+import by.dismess.core.chating.viewing.ChatIterator
+import by.dismess.core.chating.viewing.FlowIterator
 import by.dismess.core.chating.viewing.MessageIterator
 import by.dismess.core.security.Encryptor
 import by.dismess.core.utils.UniqID
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
-import java.lang.Exception
+import kotlinx.coroutines.runBlocking
 import java.util.concurrent.atomic.AtomicBoolean
 
 /**
@@ -97,5 +99,11 @@ class Chat(
         return status
     }
 
-//    val lastMessage: MessageIterator = TODO("Not implemented yet")
+    val lastMessage: MessageIterator = runBlocking {
+        ChatIterator.create(
+            FlowIterator.create(chatManager, ownFlow, ownFlow.lastMessage),
+            FlowIterator.create(chatManager, otherFlow, otherFlow.lastMessage)
+        )
+    }
 }
+

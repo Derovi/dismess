@@ -2,6 +2,7 @@ package by.dismess.core.chating.elements
 
 import by.dismess.core.chating.ChatManager
 import by.dismess.core.chating.elements.id.ChunkID
+import by.dismess.core.chating.elements.id.MessageID
 import by.dismess.core.chating.elements.stored.ChunkStored
 import by.dismess.core.chating.elements.stored.FlowStored
 import java.lang.Integer.max
@@ -19,7 +20,7 @@ class Flow(
 ) : Element {
 
     val chunks = List<Chunk?>(stored.chunkCount) { null }
-
+    val lastMessage: MessageID? = MessageID(ChunkID(id, chunks.lastIndex))
     val id
         get() = stored.id
 
