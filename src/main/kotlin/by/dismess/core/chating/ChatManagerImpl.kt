@@ -76,7 +76,7 @@ class ChatManagerImpl(
             val chunkRaw: ByteArray = dht.retrieve("chunks/$chunkID") ?: return null
             val chatEncryptor = encryptors[chatID] ?: return null
             val decrypted = chatEncryptor.decrypt(chunkRaw)
-            result = klaxon.parse<ChunkStored>(String(dht.retrieve("chunks/$chunkID") ?: return null)) ?: return null
+            result = klaxon.parse<ChunkStored>(String(decrypted)) ?: return null
         }
         return result
     }
