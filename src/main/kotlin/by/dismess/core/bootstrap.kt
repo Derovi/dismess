@@ -50,7 +50,7 @@ private var dhtModule = module {
 }
 
 fun getModulesList(): List<Module> {
-    return listOf(servicesModule, dhtModule, managersModule)
+    return listOf(servicesModule, dhtModule, managersModule, apiModule)
 }
 
 fun startCore(outerModule: Module) {
