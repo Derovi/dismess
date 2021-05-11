@@ -5,7 +5,7 @@ plugins {
 }
 
 group 'by.dismess.core'
-version '0.4-snapshot'
+version '0.4.1-snapshot'
 
 repositories {
     jcenter()
