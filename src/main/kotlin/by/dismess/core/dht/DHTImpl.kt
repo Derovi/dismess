@@ -62,6 +62,13 @@ class DHTImpl(
             val response = gson.toJson(responseData)
             result(response)
         }
+        networkService.registerGet("DHT/Validate") { message ->
+            val login = message.data ?: return@registerGet
+            val id = generateUserID(login)
+            val user: InetSocketAddress? = find(id)
+            val response = gson.toJson(user == null)
+            result(response)
+        }
     }
 
     private suspend fun pingBucket(bucket: Bucket) {
@@ -189,5 +196,10 @@ class DHTImpl(
             nearestUsers[0].first == userID -> nearestUsers[0].second
             else -> null
         }
+    }
+
+    override suspend fun isValidLogin(address: InetSocketAddress, login: String): Boolean {
+        val response = networkService.sendGet(address, "DHT/Validate", login) ?: return false
+        return gson.fromJson(response, Boolean::class.java) ?: false
     }
 }
