@@ -37,7 +37,7 @@ class DHTImpl(
         registerPostHandlers()
     }
 
-    private fun initSelf(ownerID: UserID, ownerIP: InetSocketAddress) {
+    override fun initSelf(ownerID: UserID, ownerIP: InetSocketAddress) {
         this.ownerID = ownerID
         this.ownerIP = ownerIP
         runBlocking {
