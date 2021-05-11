@@ -49,6 +49,10 @@ private var dhtModule = module {
     single<DHT> { DHTImpl(get(), get(), get()) }
 }
 
+fun getModulesList(): List<Module> {
+    return listOf(servicesModule, dhtModule, managersModule)
+}
+
 fun startCore(outerModule: Module) {
     App = koinApplication {
         modules(servicesModule, dhtModule, outerModule)

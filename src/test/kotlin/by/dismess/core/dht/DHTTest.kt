@@ -12,7 +12,6 @@ import kotlinx.coroutines.runBlocking
 import org.junit.Assert
 import org.junit.Test
 import org.koin.test.KoinTest
-import java.math.BigInteger
 import java.net.InetSocketAddress
 import kotlin.random.Random
 
@@ -118,20 +117,18 @@ class DHTTest : KoinTest {
             return InetSocketAddress(randomIP, Random.nextInt(1000, 10000))
         }
 
-        override suspend fun saveLastIP(userID: UserID, ip: InetSocketAddress) {
-            TODO("Not yet implemented")
-        }
+        override suspend fun saveLastIP(userID: UserID, ip: InetSocketAddress) {}
 
         override suspend fun getLastIP(userID: UserID): InetSocketAddress? {
-            TODO("Not yet implemented")
+            return null
         }
     }
 
     class TestUser(
         network: VirtualNetwork
     ) {
-        val dataManager =  MockDataManager()
-        val address = runBlocking {dataManager.getOwnIP()!!}
+        val dataManager = MockDataManager()
+        val address = runBlocking { dataManager.getOwnIP()!! }
         val id = runBlocking { dataManager.getId() }
         val networkInterface = VirtualNetworkInterface(network, address)
         val networkService = NetworkService(networkInterface)

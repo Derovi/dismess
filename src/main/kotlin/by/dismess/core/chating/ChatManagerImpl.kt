@@ -28,7 +28,8 @@ class ChatManagerImpl(
 ) : ChatManager {
     override val encryptors: ConcurrentHashMap<UniqID, Encryptor> = ConcurrentHashMap()
     override suspend fun startChat(userID: UserID, message: Message): Chat? {
-        TODO("Not yet implemented")
+        // TODO("Not yet implemented")
+        return null
     }
 
     init {
@@ -64,8 +65,8 @@ class ChatManagerImpl(
         }
     }
 
-    override val chats: Map<UniqID, Chat>
-        get() = TODO("Not yet implemented")
+    override val chats: Map<UniqID, Chat> = mapOf()
+        // get() = TODO("Not yet implemented")
 
     override suspend fun sendDirectMessage(userID: UniqID, message: Message): Boolean =
         userManager.sendPost(UserID(userID), "Chats/Send", message)

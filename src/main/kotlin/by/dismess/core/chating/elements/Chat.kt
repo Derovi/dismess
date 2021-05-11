@@ -97,5 +97,5 @@ class Chat(
         return status
     }
 
-    val lastMessage: MessageIterator = TODO("Not implemented yet")
+//    val lastMessage: MessageIterator = TODO("Not implemented yet")
 }
