@@ -106,7 +106,7 @@ class NetworkService(
      * Returns response if request delivered successfully, null if not
      */
 
-    private suspend fun sendRequest(
+    internal suspend fun sendRequest(
         address: InetSocketAddress,
         message: NetworkMessage,
         timeout: Long = 1000
@@ -135,6 +135,11 @@ class NetworkService(
         suspend fun result(data: String) {
             if (verificationTag != null) {
                 sendResponse(target, NetworkMessage(MessageType.RESULT, verificationTag, data))
+            }
+        }
+        suspend fun result(data: Any) {
+            if (verificationTag != null) {
+                sendResponse(target, NetworkMessage(MessageType.RESULT, verificationTag, gson.toJson(data)))
             }
         }
     }

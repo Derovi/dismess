@@ -1,6 +1,7 @@
 package by.dismess.core.dht
 
 import by.dismess.core.model.UserID
+import by.dismess.core.utils.UniqID
 import java.net.InetSocketAddress
 
 interface DHT {
