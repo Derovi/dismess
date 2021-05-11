@@ -14,7 +14,6 @@ class DataManagerImpl(
     override suspend fun getId(): UserID =
         generateUserID(getLogin() ?: "")
 
-
     override suspend fun saveLogin(login: String): Unit =
         storageService.save(DataManager.Keys.LOGIN, login)
 
