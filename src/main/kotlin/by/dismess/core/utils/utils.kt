@@ -30,7 +30,7 @@ fun groupID(vararg idList: UniqID): UniqID {
     val outputStream = ByteArrayOutputStream()
     // TODO fix
     for (id in idList) {
-        outputStream.writeBytes(id.toByteArray())
+        outputStream.write(id.toByteArray())
     }
     return UniqID(1, md.digest(outputStream.toByteArray()))
 }

@@ -3,6 +3,7 @@ package by.dismess.core.network
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert
 import org.junit.Test
+import java.lang.Thread.sleep
 import java.net.InetSocketAddress
 import java.net.ServerSocket
 import kotlin.random.Random
@@ -97,6 +98,7 @@ class RUDPNetworkInterfaceTest {
                 message = byteArrayOf(sendCounter.toByte())
                 send(first, 2228, message)
             }
+            sleep(10L)
             Assert.assertEquals(sendCounter, receiveCounter)
             Assert.assertNotEquals(receiveCounter, 0)
             first.stop()
@@ -156,6 +158,7 @@ class RUDPNetworkInterfaceTest {
                 messages[senderInd][receiverInd].add(message)
                 send(users[senderInd], sockets[receiverInd].port, message)
             }
+            sleep(10L)
             Assert.assertEquals(receiveCounter, sendCounter)
             Assert.assertNotEquals(receiveCounter, 0)
             for (user in users) {
