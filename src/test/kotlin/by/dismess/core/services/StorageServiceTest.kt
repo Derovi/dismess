@@ -1,6 +1,8 @@
 package by.dismess.core.services
 
+import by.dismess.core.model.UserID
 import by.dismess.core.outer.StorageInterface
+import com.google.gson.*
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert
 import org.junit.Rule
@@ -9,6 +11,7 @@ import org.koin.dsl.module
 import org.koin.test.KoinTest
 import org.koin.test.KoinTestRule
 import org.koin.test.inject
+import java.lang.reflect.Type
 
 class StorageServiceTest : KoinTest {
 
@@ -40,12 +43,13 @@ class StorageServiceTest : KoinTest {
         )
     }
 
+    data class DClass(var a: String, var b: Int)
+
     @Test
     fun test() {
         runBlocking {
             Assert.assertFalse(storageService.exists("erg"))
             Assert.assertNull(storageService.loadRaw(""))
-            data class DClass(var a: String, var b: Int)
             storageService.save("key", DClass("abacaba", 75656346))
             Assert.assertEquals(storageService.load<DClass>("key"), DClass("abacaba", 75656346))
             storageService.save("int", 4254545)

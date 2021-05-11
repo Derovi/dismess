@@ -3,7 +3,6 @@ package by.dismess.core.dht
 import by.dismess.core.model.UserID
 import by.dismess.core.services.NetworkService
 import by.dismess.core.services.StorageService
-import by.dismess.core.utils.UniqID
 import by.dismess.core.utils.generateUserID
 import by.dismess.core.utils.gson
 import kotlinx.coroutines.sync.Mutex
@@ -14,9 +13,9 @@ import java.util.TreeMap
 
 const val BUCKET_SIZE = 8
 const val PING_INTERVAL = 10 * 60000
-const val MAX_FIND_ITERATIONS = 100
+const val MAX_FIND_ITERATIONS = 10
 const val MAX_FIND_ATTEMPTS = 3
-const val FIND_FRONT = 10
+const val FIND_FRONT = 50
 const val STORE_COPIES_COUNT = 10
 val RIGHT_BUCKET_BORDER = BigInteger.TWO.pow(160)
 

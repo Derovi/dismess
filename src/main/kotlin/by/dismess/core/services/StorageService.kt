@@ -3,6 +3,7 @@ package by.dismess.core.services
 import by.dismess.core.outer.StorageInterface
 import by.dismess.core.utils.gson
 
+
 class StorageService(
     val storageInterface: StorageInterface
 ) {
