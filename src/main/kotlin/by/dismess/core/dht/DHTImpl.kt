@@ -1,10 +1,12 @@
 package by.dismess.core.dht
 
+import by.dismess.core.managers.DataManager
 import by.dismess.core.model.UserID
 import by.dismess.core.services.NetworkService
 import by.dismess.core.services.StorageService
 import by.dismess.core.utils.generateUserID
 import by.dismess.core.utils.gson
+import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import java.math.BigInteger
@@ -22,13 +24,18 @@ val RIGHT_BUCKET_BORDER = BigInteger("2").pow(160)
 class DHTImpl(
     val networkService: NetworkService,
     val storageService: StorageService,
-    var ownerID: UserID,
-    var ownerIP: InetSocketAddress
+    val dataManager: DataManager
 ) : DHT {
     private val tableMutex = Mutex()
     private var usersTable = mutableListOf<Bucket>()
+    private lateinit var ownerID: UserID
+    private lateinit var ownerIP: InetSocketAddress
 
     init {
+        runBlocking {
+            ownerID = dataManager.getId()
+            ownerIP = dataManager.getOwnIP()!!
+        }
         val bucket = Bucket(BucketBorder(BigInteger.ONE, RIGHT_BUCKET_BORDER))
         bucket.idToIP[ownerID] = ownerIP
         usersTable.add(bucket)

@@ -13,6 +13,8 @@ interface DataManager {
         const val LAST_IP_PREF = "last_ip."
     }
 
+    suspend fun getId(): UserID
+
     suspend fun saveLogin(login: String)
     suspend fun getLogin(): String?
 
