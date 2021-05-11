@@ -6,7 +6,6 @@ import by.dismess.core.services.NetworkService
 import by.dismess.core.services.StorageService
 import by.dismess.core.utils.generateUserID
 import by.dismess.core.utils.gson
-import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import java.math.BigInteger
@@ -28,20 +27,20 @@ class DHTImpl(
 ) : DHT {
     private val tableMutex = Mutex()
     private var usersTable = mutableListOf<Bucket>()
-    private lateinit var ownerID: UserID
-    private lateinit var ownerIP: InetSocketAddress
+    private var ownerID: UserID? = null
+    private var ownerIP: InetSocketAddress? = null
 
     init {
-        runBlocking {
-            ownerID = dataManager.getId()
-            ownerIP = dataManager.getOwnIP()!!
-        }
         val bucket = Bucket(BucketBorder(BigInteger.ONE, RIGHT_BUCKET_BORDER))
-        bucket.idToIP[ownerID] = ownerIP
+//        bucket.idToIP[ownerID] = ownerIP
         usersTable.add(bucket)
         registerGetHandlers()
         registerPostHandlers()
     }
+
+//    private fun init() {
+//
+//    }
 
     private fun registerPostHandlers() {
         networkService.registerPost("DHT/Ping") {}
@@ -93,7 +92,7 @@ class DHTImpl(
             pingBucket(bucket)
         }
 
-        if (ownerID inBucket bucket) {
+        if (ownerID!! inBucket bucket) {
             bucket.idToIP[user] = address
             if (bucket.idToIP.size > BUCKET_SIZE) {
                 val splitedBuckets = splitBucket(bucket)
@@ -132,7 +131,7 @@ class DHTImpl(
         while (findIterations < MAX_FIND_ITERATIONS && !(nearestUsers equalTo previousIterationResult)) {
             buffer.clear()
             for (user in nearestUsers) {
-                val request = FindRequest(target, ownerID)
+                val request = FindRequest(target, ownerID!!)
                 val response = networkService.sendGet(user.value, "DHT/Find", request) ?: continue
                 val responseBucket = gson.fromJson(response, Bucket::class.java) ?: continue
                 buffer.putAll(responseBucket.idToIP)
@@ -180,7 +179,7 @@ class DHTImpl(
 
     override suspend fun connectTo(userID: UserID, address: InetSocketAddress) {
         tableMutex.withLock { trySaveUser(userID, address) }
-        find(ownerID)
+        find(ownerID!!)
     }
 
     override suspend fun find(userID: UserID): InetSocketAddress? {
