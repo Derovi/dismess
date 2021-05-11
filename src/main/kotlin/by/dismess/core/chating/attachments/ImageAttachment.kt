@@ -1,6 +1,6 @@
-package by.dismess.core.model.attachments
+package by.dismess.core.chating.attachments
 
-import by.dismess.core.model.Attachment
+import by.dismess.core.chating.Attachment
 
 class ImageAttachment : Attachment(TYPE) {
     companion object {
