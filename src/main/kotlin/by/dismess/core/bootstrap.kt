@@ -53,10 +53,10 @@ fun startCore(outerModule: Module) {
     App = koinApplication {
         modules(servicesModule, dhtModule, outerModule)
     }
-    loadKoinModules(apiModule)
+    loadKoinModules(listOf(apiModule, dhtModule, outerModule))
 }
 
 fun stopCore() {
-    unloadKoinModules(apiModule)
+    unloadKoinModules(listOf(apiModule, dhtModule))
     App.close()
 }
