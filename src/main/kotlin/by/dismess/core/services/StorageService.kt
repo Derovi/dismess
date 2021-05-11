@@ -15,8 +15,9 @@ class StorageService(
         }
         storageInterface.saveRawData(key, save.toByteArray())
     }
+
     suspend inline fun <reified T> load(key: String): T? =
-        storageInterface.loadRawData(key) ?.let {
+        storageInterface.loadRawData(key)?.let {
             val data = String(it)
             when (T::class) {
                 String::class -> data
@@ -29,11 +30,14 @@ class StorageService(
                 else -> gson.fromJson(data, T::class.java)
             }
         } as T?
+
     suspend fun saveRaw(key: String, data: String) {
         storageInterface.saveRawData(key, data.toByteArray())
     }
+
     suspend fun loadRaw(key: String) =
         storageInterface.loadRawData(key)?.let { String(it) }
+
     suspend fun forget(key: String) {
         storageInterface.forget(key)
     }

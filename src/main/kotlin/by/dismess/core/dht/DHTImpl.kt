@@ -147,7 +147,7 @@ class DHTImpl(
 
         return nearestUsers
     }
-  
+
     override suspend fun store(key: String, data: ByteArray): Boolean {
         val dataOwner = generateUserID(key)
         val storingUsers = findNearestNodes(dataOwner, STORE_COPIES_COUNT)

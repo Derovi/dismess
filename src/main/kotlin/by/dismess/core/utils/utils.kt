@@ -1,7 +1,14 @@
 package by.dismess.core.utils
 
 import by.dismess.core.model.UserID
-import com.google.gson.*
+import com.google.gson.GsonBuilder
+import com.google.gson.Gson
+import com.google.gson.JsonDeserializer
+import com.google.gson.JsonSerializer
+import com.google.gson.JsonSerializationContext
+import com.google.gson.JsonDeserializationContext
+import com.google.gson.JsonPrimitive
+import com.google.gson.JsonElement
 import java.lang.reflect.Type
 import java.io.ByteArrayOutputStream
 import java.math.BigInteger
@@ -32,7 +39,7 @@ val Int.uniqID: BigInteger
     get() = UniqID.valueOf(this.toLong())
 
 fun twoBytesToInt(number: ByteArray): Int = (number[0].toInt() and 0xff shl 8) or
-    (number[1].toInt() and 0xff)
+        (number[1].toInt() and 0xff)
 
 fun intToBytes(number: Int, size: Int = 1): ByteArray =
     ByteBuffer.allocate(4).putInt(number).array().sliceArray((4 - size)..3)
