@@ -47,7 +47,7 @@ class ChatManagerImpl(
     override suspend fun loadChunk(chunkID: UniqID): ChunkStored? {
         var result = storageService.load<ChunkStored>("chunks/$chunkID")
         if (result == null) {
-            result = klaxon.parse<ChunkStored>(String(dht.retrieve("chunks/$chunkID"))) ?: return null
+            result = klaxon.parse<ChunkStored>(String(dht.retrieve("chunks/$chunkID") ?: return null)) ?: return null
         }
         return result
     }
@@ -55,7 +55,7 @@ class ChatManagerImpl(
     override suspend fun loadFlow(flowID: UniqID): FlowStored? {
         var result = storageService.load<FlowStored>("flows/$flowID")
         if (result == null) {
-            result = klaxon.parse<FlowStored>(String(dht.retrieve("flows/$flowID")))
+            result = klaxon.parse<FlowStored>(String(dht.retrieve("flows/$flowID") ?: return null))
         }
         return result
     }

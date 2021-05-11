@@ -14,6 +14,14 @@ class SecureNetworkInterfaceTest : KoinTest {
 
     class MockNetworkInterface : NetworkInterface {
         lateinit var receiver: (sender: InetSocketAddress, data: ByteArray) -> Unit
+        override suspend fun start(address: InetSocketAddress?) {
+            return
+        }
+
+        override suspend fun stop() {
+            return
+        }
+
         override suspend fun sendRawMessage(address: InetSocketAddress, data: ByteArray) {
             receiver(InetSocketAddress(1), data)
         }

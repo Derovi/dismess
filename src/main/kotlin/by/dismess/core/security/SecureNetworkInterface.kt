@@ -55,6 +55,14 @@ class SecureNetworkInterface(
         }
     }
 
+    override suspend fun start(address: InetSocketAddress?) {
+        networkInterface.start(address)
+    }
+
+    override suspend fun stop() {
+        networkInterface.stop()
+    }
+
     override suspend fun sendRawMessage(address: InetSocketAddress, data: ByteArray) {
         val updatedKey = tryUpdateKey(address)
         if (updatedKey != null) {
