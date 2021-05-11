@@ -28,6 +28,14 @@ class NetworkServiceTest : KoinTest {
             network.register(this)
         }
 
+        override suspend fun start(address: InetSocketAddress?) {
+            return
+        }
+
+        override suspend fun stop() {
+            return
+        }
+
         override suspend fun sendRawMessage(address: InetSocketAddress, data: ByteArray) {
             network.sendMessage(ownAddress, address, data)
         }
