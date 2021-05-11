@@ -4,11 +4,13 @@ import by.dismess.core.chating.ChatManager
 import by.dismess.core.chating.MessageStatus
 import by.dismess.core.chating.elements.id.FlowID
 import by.dismess.core.chating.viewing.MessageIterator
+import by.dismess.core.security.Encryptor
 import by.dismess.core.utils.UniqID
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 import java.lang.Exception
+import java.util.concurrent.atomic.AtomicBoolean
 
 /**
  * Represents dialog
@@ -24,8 +26,34 @@ class Chat(
     val otherID: UniqID
 ) {
 
+    private val encryptor = Encryptor()
+    private val wasOffline = AtomicBoolean(false)
     lateinit var ownFlow: Flow
     lateinit var otherFlow: Flow
+
+    init {
+        chatManager.encryptors[id] = encryptor
+    }
+
+    private suspend fun exchangeKey() {
+        coroutineScope {
+            val keyMessage = KeyMessage(
+                encryptor.publicKeyBytes(true),
+                id,
+                ownID,
+                true
+            )
+            launch { chatManager.sendKey(otherID, keyMessage) }
+        }
+    }
+
+    private suspend fun tryInitEncryptor() {
+        if (encryptor.isInitialized()) {
+            return
+        }
+        exchangeKey()
+        encryptor.block()
+    }
 
     /**
      * Synchronize incomming messages from DHT
@@ -52,13 +80,18 @@ class Chat(
     suspend fun sendMessage(message: Message): MessageStatus {
         var status = MessageStatus.ERROR
         coroutineScope {
+            tryInitEncryptor()
             launch { otherFlow.addMessage(message) }
             val persistSuccessful = async { otherFlow.persist() } // TODO optimize
             val directSuccessful = async { chatManager.sendDirectMessage(otherID, message) }
             if (directSuccessful.await()) {
                 status = MessageStatus.DELIVERED
+                if (wasOffline.getAndSet(false)) {
+                    exchangeKey()
+                }
             } else if (persistSuccessful.await()) {
                 status = MessageStatus.SENT
+                wasOffline.set(true)
             }
         }
         return status
