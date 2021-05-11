@@ -1,11 +1,15 @@
 package by.dismess.core
 
+import AppImpl
+import by.dismess.core.chating.ChatManager
+import by.dismess.core.chating.ChatManagerImpl
 import by.dismess.core.dht.DHT
 import by.dismess.core.dht.DHTImpl
 import by.dismess.core.events.EventBus
+import by.dismess.core.managers.App
 import by.dismess.core.managers.DataManager
-import by.dismess.core.managers.impl.DataManagerImpl
 import by.dismess.core.managers.UserManager
+import by.dismess.core.managers.impl.DataManagerImpl
 import by.dismess.core.managers.impl.UserManagerImpl
 import by.dismess.core.services.NetworkService
 import by.dismess.core.services.StorageService
@@ -30,7 +34,8 @@ private var managersModule = module {
 
 private var apiModule = module {
     // describes dependencies that should be visible for users
-    single<API> { APIImplementation() }
+    single<App> { AppImpl(get(), get()) }
+    single<ChatManager> { ChatManagerImpl(get(), get(), get(), get(), get()) }
     single { EventBus() }
 }
 

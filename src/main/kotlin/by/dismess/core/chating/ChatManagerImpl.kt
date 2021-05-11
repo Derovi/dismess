@@ -27,6 +27,9 @@ class ChatManagerImpl(
     val dht: DHT
 ) : ChatManager {
     override val encryptors: ConcurrentHashMap<UniqID, Encryptor> = ConcurrentHashMap()
+    override suspend fun startChat(userID: UserID, message: Message): Chat? {
+        TODO("Not yet implemented")
+    }
 
     init {
         networkService.registerPost("Chats/Send") {

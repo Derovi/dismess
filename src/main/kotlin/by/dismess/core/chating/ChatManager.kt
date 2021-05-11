@@ -7,6 +7,7 @@ import by.dismess.core.chating.elements.id.ChunkID
 import by.dismess.core.chating.elements.id.FlowID
 import by.dismess.core.chating.elements.stored.ChunkStored
 import by.dismess.core.chating.elements.stored.FlowStored
+import by.dismess.core.model.UserID
 import by.dismess.core.security.Encryptor
 import by.dismess.core.utils.UniqID
 import java.util.concurrent.ConcurrentHashMap
@@ -16,6 +17,8 @@ interface ChatManager {
 
     val chats: Map<UniqID, Chat>
     val encryptors: ConcurrentHashMap<UniqID, Encryptor>
+
+    suspend fun startChat(userID: UserID, message: Message): Chat?
 
     suspend fun sendDirectMessage(userID: UniqID, message: Message): Boolean
     suspend fun sendKey(userID: UniqID, key: KeyMessage): Boolean
