@@ -8,4 +8,5 @@ interface DHT {
     suspend fun retrieve(key: String): ByteArray?
     suspend fun connectTo(userID: UserID, address: InetSocketAddress)
     suspend fun find(userID: UserID): InetSocketAddress?
+    suspend fun isValidLogin(address: InetSocketAddress, login: String): Boolean
 }
