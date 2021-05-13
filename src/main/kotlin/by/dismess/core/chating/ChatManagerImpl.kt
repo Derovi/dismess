@@ -3,12 +3,14 @@ package by.dismess.core.chating
 import by.dismess.core.chating.elements.Chat
 import by.dismess.core.chating.elements.KeyMessage
 import by.dismess.core.chating.elements.Message
+import by.dismess.core.chating.elements.stored.ChatListStored
 import by.dismess.core.chating.elements.stored.ChunkStored
 import by.dismess.core.chating.elements.stored.FlowStored
 import by.dismess.core.dht.DHT
 import by.dismess.core.events.EventBus
 import by.dismess.core.events.MessageEvent
 import by.dismess.core.klaxon
+import by.dismess.core.managers.DataManager
 import by.dismess.core.managers.UserManager
 import by.dismess.core.model.UserID
 import by.dismess.core.security.Encryptor
@@ -16,10 +18,13 @@ import by.dismess.core.services.NetworkService
 import by.dismess.core.services.StorageService
 import by.dismess.core.utils.UniqID
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import java.lang.Exception
+import java.math.BigInteger
 import java.util.concurrent.ConcurrentHashMap
 
 @ExperimentalCoroutinesApi
 class ChatManagerImpl(
+    val dataManager: DataManager,
     val userManager: UserManager,
     val networkService: NetworkService,
     val storageService: StorageService,
@@ -32,41 +37,13 @@ class ChatManagerImpl(
         return null
     }
 
-    init {
-        networkService.registerPost("Chats/Send") {
-            it.data ?: return@registerPost
-            val message = klaxon.parse<Message>(it.data!!) ?: return@registerPost
-            val chat = chats[message.chatID] ?: return@registerPost
-            chat.otherFlow.addMessage(message)
-            chat.otherFlow.accept() // TODO optimize
-            eventBUS.callEvent(MessageEvent(message))
-        }
-        networkService.registerPost("Chats/Key") {
-            it.data ?: return@registerPost
-            val key = klaxon.parse<KeyMessage>(it.data!!) ?: return@registerPost
-            val encryptor = encryptors[key.chatID] ?: return@registerPost
-            encryptor.updateKey()
-            val updated = encryptor.setReceiverPublicKey(key.key)
-            if (key.sendBack) {
-                val backKey = KeyMessage(
-                    encryptor.publicKeyBytes(!updated),
-                    key.chatID,
-                    key.senderID,
-                    !updated
-                )
-                sendKey(key.senderID, backKey)
-            }
-        }
-    }
-
     override suspend fun synchronize() {
         for (chat in chats.values) {
             chat.synchronize()
         }
     }
 
-    override val chats: Map<UniqID, Chat> = mapOf()
-        // get() = TODO("Not yet implemented")
+    override val chats = mapOf<UniqID, Chat>()
 
     override suspend fun sendDirectMessage(userID: UniqID, message: Message): Boolean =
         userManager.sendPost(UserID(userID), "Chats/Send", message)
@@ -111,4 +88,49 @@ class ChatManagerImpl(
 
     override suspend fun persistFlow(flow: FlowStored): Boolean =
         dht.store("flows/${flow.id.uniqID}", klaxon.toJsonString(flow).toByteArray())
+
+    private fun registerHandlers() {
+        networkService.registerPost("Chats/Send") {
+            it.data ?: return@registerPost
+            val message = klaxon.parse<Message>(it.data!!) ?: return@registerPost
+            val chat = chats[message.chatID] ?: return@registerPost
+            chat.otherFlow.addMessage(message)
+            chat.otherFlow.accept() // TODO optimize
+            eventBUS.callEvent(MessageEvent(message))
+        }
+        networkService.registerPost("Chats/Key") {
+            it.data ?: return@registerPost
+            val key = klaxon.parse<KeyMessage>(it.data!!) ?: return@registerPost
+            val encryptor = encryptors[key.chatID] ?: return@registerPost
+            encryptor.updateKey()
+            val updated = encryptor.setReceiverPublicKey(key.key)
+            if (key.sendBack) {
+                val backKey = KeyMessage(
+                    encryptor.publicKeyBytes(!updated),
+                    key.chatID,
+                    key.senderID,
+                    !updated
+                )
+                sendKey(key.senderID, backKey)
+            }
+        }
+    }
+
+    override suspend fun load() {
+        registerHandlers()
+        loadChats()
+    }
+
+    private suspend fun loadChats() {
+        val ownID = dataManager.getId()
+        val chatListStored = storageService.load<ChatListStored>("Chats/List") ?: ChatListStored()
+        for (chatStored in chatListStored.chatsID) {
+            var otherID: UniqID
+            for (memberID in chatStored.membersID) {
+                if (memberID != ownID) {
+                    otherID = memberID
+                }
+            }
+        }
+    }
 }

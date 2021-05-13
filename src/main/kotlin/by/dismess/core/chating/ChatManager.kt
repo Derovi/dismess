@@ -18,6 +18,7 @@ interface ChatManager {
     val chats: Map<UniqID, Chat>
     val encryptors: ConcurrentHashMap<UniqID, Encryptor>
 
+    suspend fun load()
     suspend fun startChat(userID: UserID, message: Message): Chat?
 
     suspend fun sendDirectMessage(userID: UniqID, message: Message): Boolean
