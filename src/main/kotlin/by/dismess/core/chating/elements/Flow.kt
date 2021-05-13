@@ -20,7 +20,7 @@ class Flow(
 ) : Element {
 
     val chunks = List<Chunk?>(stored.chunkCount) { null }
-    val lastMessage: MessageID? = MessageID(ChunkID(id, chunks.lastIndex))
+    lateinit var lastMessage: MessageID // TODO("Not yet implemented")
     val id
         get() = stored.id
 

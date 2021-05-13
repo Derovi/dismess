@@ -134,7 +134,7 @@ class DHTTest : KoinTest {
         val networkService = NetworkService(networkInterface)
         val storageInterface = MockStorageInterface()
         val storageService = StorageService(storageInterface)
-        val DHT = DHTImpl(networkService, storageService, dataManager)
+        val DHT = DHTImpl(networkService, storageService)
     }
 
     @Test
