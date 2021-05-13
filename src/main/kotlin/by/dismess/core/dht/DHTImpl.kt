@@ -5,6 +5,7 @@ import by.dismess.core.services.NetworkService
 import by.dismess.core.services.StorageService
 import by.dismess.core.utils.generateUserID
 import by.dismess.core.utils.gson
+import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import java.math.BigInteger
@@ -17,23 +18,30 @@ const val MAX_FIND_ITERATIONS = 10
 const val MAX_FIND_ATTEMPTS = 3
 const val FIND_FRONT = 50
 const val STORE_COPIES_COUNT = 10
-val RIGHT_BUCKET_BORDER = BigInteger("2").pow(160)
+val RIGHT_BUCKET_BORDER: BigInteger = BigInteger("2").pow(160)
 
 class DHTImpl(
     val networkService: NetworkService,
-    val storageService: StorageService,
-    var ownerID: UserID,
-    var ownerIP: InetSocketAddress
+    val storageService: StorageService
 ) : DHT {
     private val tableMutex = Mutex()
     private var usersTable = mutableListOf<Bucket>()
+    private var ownerID: UserID? = null
+    private var ownerIP: InetSocketAddress? = null
 
     init {
         val bucket = Bucket(BucketBorder(BigInteger.ONE, RIGHT_BUCKET_BORDER))
-        bucket.idToIP[ownerID] = ownerIP
         usersTable.add(bucket)
         registerGetHandlers()
         registerPostHandlers()
+    }
+
+    override fun initSelf(ownerID: UserID, ownerIP: InetSocketAddress) {
+        this.ownerID = ownerID
+        this.ownerIP = ownerIP
+        runBlocking {
+            trySaveUser(ownerID, ownerIP)
+        }
     }
 
     private fun registerPostHandlers() {
@@ -62,6 +70,13 @@ class DHTImpl(
             val response = gson.toJson(responseData)
             result(response)
         }
+        networkService.registerGet("DHT/Validate") { message ->
+            val login = message.data ?: return@registerGet
+            val id = generateUserID(login)
+            val user: InetSocketAddress? = find(id)
+            val response = gson.toJson(user == null)
+            result(response)
+        }
     }
 
     private suspend fun pingBucket(bucket: Bucket) {
@@ -86,7 +101,7 @@ class DHTImpl(
             pingBucket(bucket)
         }
 
-        if (ownerID inBucket bucket) {
+        if (ownerID!! inBucket bucket) {
             bucket.idToIP[user] = address
             if (bucket.idToIP.size > BUCKET_SIZE) {
                 val splitedBuckets = splitBucket(bucket)
@@ -125,7 +140,7 @@ class DHTImpl(
         while (findIterations < MAX_FIND_ITERATIONS && !(nearestUsers equalTo previousIterationResult)) {
             buffer.clear()
             for (user in nearestUsers) {
-                val request = FindRequest(target, ownerID)
+                val request = FindRequest(target, ownerID!!)
                 val response = networkService.sendGet(user.value, "DHT/Find", request) ?: continue
                 val responseBucket = gson.fromJson(response, Bucket::class.java) ?: continue
                 buffer.putAll(responseBucket.idToIP)
@@ -173,7 +188,7 @@ class DHTImpl(
 
     override suspend fun connectTo(userID: UserID, address: InetSocketAddress) {
         tableMutex.withLock { trySaveUser(userID, address) }
-        find(ownerID)
+        find(ownerID!!)
     }
 
     override suspend fun find(userID: UserID): InetSocketAddress? {
@@ -189,5 +204,10 @@ class DHTImpl(
             nearestUsers[0].first == userID -> nearestUsers[0].second
             else -> null
         }
+    }
+
+    override suspend fun isValidLogin(address: InetSocketAddress, login: String): Boolean {
+        val response = networkService.sendGet(address, "DHT/Validate", login) ?: return false
+        return gson.fromJson(response, Boolean::class.java) ?: false
     }
 }

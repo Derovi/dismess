@@ -11,6 +11,9 @@ import by.dismess.core.managers.DataManager
 import by.dismess.core.managers.UserManager
 import by.dismess.core.managers.impl.DataManagerImpl
 import by.dismess.core.managers.impl.UserManagerImpl
+import by.dismess.core.network.RUDPNetworkInterfaceImpl
+import by.dismess.core.outer.NetworkInterface
+import by.dismess.core.security.SecureNetworkInterface
 import by.dismess.core.services.NetworkService
 import by.dismess.core.services.StorageService
 import com.beust.klaxon.Klaxon
@@ -18,6 +21,7 @@ import org.koin.core.KoinApplication
 import org.koin.core.context.loadKoinModules
 import org.koin.core.context.unloadKoinModules
 import org.koin.core.module.Module
+import org.koin.core.qualifier.named
 import org.koin.dsl.koinApplication
 import org.koin.dsl.module
 
@@ -41,22 +45,28 @@ private var apiModule = module {
 
 private var servicesModule = module {
     // describes dependencies inside Core (NOT VISIBLE for users)
+    single<NetworkInterface>(named("RUDP")) { RUDPNetworkInterfaceImpl() }
+    single<NetworkInterface> { SecureNetworkInterface(get(named("RUDP"))) }
     single { NetworkService(get()) }
     single { StorageService(get()) }
 }
 
 private var dhtModule = module {
-    single<DHT> { DHTImpl(get(), get(), get(), get()) }
+    single<DHT> { DHTImpl(get(), get()) }
+}
+
+fun getModulesList(): List<Module> {
+    return listOf(servicesModule, dhtModule, managersModule, apiModule)
 }
 
 fun startCore(outerModule: Module) {
     App = koinApplication {
         modules(servicesModule, dhtModule, outerModule)
     }
-    loadKoinModules(apiModule)
+    loadKoinModules(listOf(apiModule, dhtModule, outerModule))
 }
 
 fun stopCore() {
-    unloadKoinModules(apiModule)
+    unloadKoinModules(listOf(apiModule, dhtModule))
     App.close()
 }

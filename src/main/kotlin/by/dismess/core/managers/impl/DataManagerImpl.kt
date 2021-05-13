@@ -4,11 +4,15 @@ import by.dismess.core.chating.attachments.ImageAttachment
 import by.dismess.core.managers.DataManager
 import by.dismess.core.model.UserID
 import by.dismess.core.services.StorageService
+import by.dismess.core.utils.generateUserID
 import java.net.InetSocketAddress
 
 class DataManagerImpl(
     val storageService: StorageService
 ) : DataManager {
+
+    override suspend fun getId(): UserID =
+        generateUserID(getLogin() ?: "")
 
     override suspend fun saveLogin(login: String): Unit =
         storageService.save(DataManager.Keys.LOGIN, login)
