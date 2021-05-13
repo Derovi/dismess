@@ -1,6 +1,8 @@
 package by.dismess.core.dht
 
 import by.dismess.core.chating.attachments.ImageAttachment
+import by.dismess.core.common.VirtualNetwork
+import by.dismess.core.common.VirtualUser
 import by.dismess.core.managers.DataManager
 import by.dismess.core.outer.NetworkInterface
 import by.dismess.core.outer.StorageInterface
@@ -16,58 +18,6 @@ import java.net.InetSocketAddress
 import kotlin.random.Random
 
 class DHTTest : KoinTest {
-
-    class VirtualNetwork {
-        private val networkInterfaces = mutableMapOf<InetSocketAddress, VirtualNetworkInterface>()
-
-        fun register(networkInterface: VirtualNetworkInterface) {
-            networkInterfaces[networkInterface.ownAddress] = networkInterface
-        }
-
-        fun sendMessage(from: InetSocketAddress, to: InetSocketAddress, data: ByteArray) {
-            networkInterfaces[to]?.receiver?.let { it(from, data) }
-        }
-    }
-
-    class VirtualNetworkInterface(val network: VirtualNetwork, val ownAddress: InetSocketAddress) : NetworkInterface {
-        lateinit var receiver: (sender: InetSocketAddress, data: ByteArray) -> Unit
-
-        init {
-            network.register(this)
-        }
-
-        override suspend fun start(address: InetSocketAddress?) {
-            return
-        }
-
-        override suspend fun stop() {
-            return
-        }
-
-        override suspend fun sendRawMessage(address: InetSocketAddress, data: ByteArray) {
-            network.sendMessage(ownAddress, address, data)
-        }
-
-        override fun setMessageReceiver(receiver: (sender: InetSocketAddress, data: ByteArray) -> Unit) {
-            this.receiver = receiver
-        }
-    }
-
-    class MockStorageInterface : StorageInterface {
-        private val storage = mutableMapOf<String, ByteArray>()
-
-        override suspend fun exists(key: String): Boolean = storage.containsKey(key)
-
-        override suspend fun forget(key: String) {
-            storage.remove(key)
-        }
-
-        override suspend fun loadRawData(key: String): ByteArray? = storage[key]
-
-        override suspend fun saveRawData(key: String, data: ByteArray) {
-            storage[key] = data
-        }
-    }
 
     fun getRandomString(length: Int): String {
         val allowedChars = ('A'..'Z') + ('a'..'z') + ('0'..'9')
@@ -124,28 +74,17 @@ class DHTTest : KoinTest {
         }
     }
 
-    class TestUser(
-        network: VirtualNetwork
-    ) {
-        val dataManager = MockDataManager()
-        val address = runBlocking { dataManager.getOwnIP()!! }
-        val id = runBlocking { dataManager.getId() }
-        val networkInterface = VirtualNetworkInterface(network, address)
-        val networkService = NetworkService(networkInterface)
-        val storageInterface = MockStorageInterface()
-        val storageService = StorageService(storageInterface)
-        val DHT = DHTImpl(networkService, storageService, dataManager)
-    }
+
 
     @Test
     fun findTest() {
         val network = VirtualNetwork()
 
-        val firstUser = TestUser(network)
-        val usersList = mutableListOf<TestUser>(firstUser)
+        val firstUser = VirtualUser(network)
+        val usersList = mutableListOf(firstUser)
 
         for (i in 1..1000) {
-            usersList.add(TestUser(network))
+            usersList.add(VirtualUser(network))
             val randomUser = usersList[Random.nextInt(i)]
             runBlocking { usersList[i].DHT.connectTo(randomUser.id, randomUser.address) }
         }
@@ -167,8 +106,8 @@ class DHTTest : KoinTest {
     fun findSimpleTest() {
         val network = VirtualNetwork()
 
-        val alice = TestUser(network)
-        val bob = TestUser(network)
+        val alice = VirtualUser(network)
+        val bob = VirtualUser(network)
         runBlocking { bob.DHT.connectTo(alice.id, alice.address) }
 
         Assert.assertEquals(runBlocking { alice.DHT.find(bob.id) }, bob.address)
@@ -179,8 +118,8 @@ class DHTTest : KoinTest {
     fun storeSimpleTest() {
         val network = VirtualNetwork()
 
-        val alice = TestUser(network)
-        val bob = TestUser(network)
+        val alice = VirtualUser(network)
+        val bob = VirtualUser(network)
         runBlocking { bob.DHT.connectTo(alice.id, alice.address) }
 
         val message = "Very interesting text"
@@ -198,11 +137,11 @@ class DHTTest : KoinTest {
     @Test
     fun storeTest() {
         val network = VirtualNetwork()
-        val firstUser = TestUser(network)
+        val firstUser = VirtualUser(network)
         val usersList = mutableListOf(firstUser)
 
         for (i in 1..1000) {
-            usersList.add(TestUser(network))
+            usersList.add(VirtualUser(network))
             val randomUser = usersList[Random.nextInt(i)]
             runBlocking { usersList[i].DHT.connectTo(randomUser.id, randomUser.address) }
         }

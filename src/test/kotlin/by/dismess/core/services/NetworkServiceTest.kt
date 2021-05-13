@@ -1,6 +1,7 @@
 package by.dismess.core.services
 
-import by.dismess.core.outer.NetworkInterface
+import by.dismess.core.common.VirtualNetwork
+import by.dismess.core.common.VirtualNetworkInterface
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert
 import org.junit.Test
@@ -8,42 +9,6 @@ import org.koin.test.KoinTest
 import java.net.InetSocketAddress
 
 class NetworkServiceTest : KoinTest {
-
-    class VirtualNetwork {
-        private val networkInterfaces = mutableMapOf<InetSocketAddress, VirtualNetworkInterface>()
-
-        fun register(networkInterface: VirtualNetworkInterface) {
-            networkInterfaces[networkInterface.ownAddress] = networkInterface
-        }
-
-        fun sendMessage(from: InetSocketAddress, to: InetSocketAddress, data: ByteArray) {
-            networkInterfaces[to]?.receiver?.let { it(from, data) }
-        }
-    }
-
-    class VirtualNetworkInterface(val network: VirtualNetwork, val ownAddress: InetSocketAddress) : NetworkInterface {
-        lateinit var receiver: (sender: InetSocketAddress, data: ByteArray) -> Unit
-
-        init {
-            network.register(this)
-        }
-
-        override suspend fun start(address: InetSocketAddress?) {
-            return
-        }
-
-        override suspend fun stop() {
-            return
-        }
-
-        override suspend fun sendRawMessage(address: InetSocketAddress, data: ByteArray) {
-            network.sendMessage(ownAddress, address, data)
-        }
-
-        override fun setMessageReceiver(receiver: (sender: InetSocketAddress, data: ByteArray) -> Unit) {
-            this.receiver = receiver
-        }
-    }
 
     @Test
     fun basicsTest() {
