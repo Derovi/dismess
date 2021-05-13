@@ -17,8 +17,6 @@ import by.dismess.core.services.NetworkService
 import by.dismess.core.services.StorageService
 import by.dismess.core.utils.UniqID
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import java.lang.Exception
-import java.math.BigInteger
 import java.util.concurrent.ConcurrentHashMap
 
 @ExperimentalCoroutinesApi
@@ -50,9 +48,9 @@ class ChatManagerImpl(
     override suspend fun sendKey(userID: UniqID, key: KeyMessage): Boolean =
         userManager.sendPost(userID, "Chats/Key", key)
 
-    override suspend fun loadChunk(chunkID: UniqID, chatID: UniqID): ChunkStored? {
+    override suspend fun loadChunk(chunkID: UniqID, chatID: UniqID, loadMode: LoadMode): ChunkStored? {
         var result = storageService.load<ChunkStored>("chunks/$chunkID")
-        if (result == null) {
+        if (loadMode == LoadMode.OTHER && (result == null || !result.complete)) {
             val chunkRaw: ByteArray = dht.retrieve("chunks/$chunkID") ?: return null
             val chatEncryptor = encryptors[chatID] ?: return null
             val decrypted = chatEncryptor.decrypt(chunkRaw)
@@ -61,12 +59,12 @@ class ChatManagerImpl(
         return result
     }
 
-    override suspend fun loadFlow(flowID: UniqID): FlowStored? {
-        var result = storageService.load<FlowStored>("flows/$flowID")
-        if (result == null) {
-            result = klaxon.parse<FlowStored>(String(dht.retrieve("flows/$flowID") ?: return null))
+    override suspend fun loadFlow(flowID: UniqID, loadMode: LoadMode): FlowStored? {
+        return if (loadMode == LoadMode.OWN) {
+            storageService.load("flows/$flowID")
+        } else {
+            klaxon.parse<FlowStored>(String(dht.retrieve("flows/$flowID") ?: return null))
         }
-        return result
     }
 
     override suspend fun acceptChunk(chunk: ChunkStored) {
@@ -128,8 +126,10 @@ class ChatManagerImpl(
             for (memberID in chatStored.membersID) {
                 if (memberID != ownID) {
                     otherID = memberID
+                    break
                 }
             }
+
         }
     }
 }

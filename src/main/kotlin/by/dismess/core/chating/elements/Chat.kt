@@ -1,6 +1,7 @@
 package by.dismess.core.chating.elements
 
 import by.dismess.core.chating.ChatManager
+import by.dismess.core.chating.LoadMode
 import by.dismess.core.chating.MessageStatus
 import by.dismess.core.chating.elements.id.FlowID
 import by.dismess.core.chating.viewing.ChatIterator
@@ -63,11 +64,13 @@ class Chat(
     suspend fun synchronize() {
         ownFlow = Flow(
             chatManager,
-            chatManager.loadFlow(FlowID(id, ownID)) ?: throw Exception("Can't load own flow")
+            chatManager.loadFlow(FlowID(id, ownID), LoadMode.OWN) ?: throw Exception("Can't load own flow"),
+                LoadMode.OWN
         )
         otherFlow = Flow(
             chatManager,
-            chatManager.loadFlow(FlowID(id, otherID)) ?: throw Exception("Can't load other flow")
+            chatManager.loadFlow(FlowID(id, otherID), LoadMode.OTHER) ?: throw Exception("Can't load other flow"),
+                LoadMode.OTHER
         )
     }
 

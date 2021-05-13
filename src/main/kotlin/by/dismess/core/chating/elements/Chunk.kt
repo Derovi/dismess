@@ -1,6 +1,7 @@
 package by.dismess.core.chating.elements
 
 import by.dismess.core.chating.ChatManager
+import by.dismess.core.chating.LoadMode
 import by.dismess.core.chating.elements.stored.ChunkStored
 
 /**
@@ -11,7 +12,8 @@ import by.dismess.core.chating.elements.stored.ChunkStored
  */
 class Chunk(
     val chatManager: ChatManager,
-    stored: ChunkStored
+    stored: ChunkStored,
+    val loadMode: LoadMode
 ) : Element {
     var storedSize = stored.messages.size
 
@@ -47,7 +49,7 @@ class Chunk(
         if (storedSize == messages.size) {
             return
         }
-        chatManager.acceptChunk(ChunkStored(id, messages))
+        chatManager.acceptChunk(ChunkStored(id, complete, messages))
         storedSize = messages.size
     }
 
@@ -55,7 +57,7 @@ class Chunk(
         if (storedSize == messages.size) {
             return true
         }
-        if (!chatManager.persistChunk(ChunkStored(id, messages))) {
+        if (!chatManager.persistChunk(ChunkStored(id, complete, messages))) {
             return false
         }
         storedSize = messages.size
