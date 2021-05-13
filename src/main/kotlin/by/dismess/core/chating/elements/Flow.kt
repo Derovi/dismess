@@ -22,7 +22,9 @@ class Flow(
 ) : Element {
 
     val chunks = List<Chunk?>(stored.chunkCount) { null }
-    lateinit var lastMessage: MessageID // TODO("Not yet implemented")
+    var lastMessage = if (chunks.isEmpty()) null else
+        MessageID(chunks.last()!!.id, chunks.last()!!.messages.lastIndex)
+
     val id
         get() = stored.id
 
@@ -35,7 +37,7 @@ class Flow(
             chunks[idx] = Chunk(
                 chatManager,
                 chatManager.loadChunk(ChunkID(id, idx), loadMode) ?: return null,
-                    loadMode
+                loadMode
             )
         }
         return chunks[idx]

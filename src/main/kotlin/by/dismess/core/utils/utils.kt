@@ -14,6 +14,7 @@ import java.math.BigInteger
 import java.net.InetSocketAddress
 import java.nio.ByteBuffer
 import java.security.MessageDigest
+import java.util.*
 
 val md = MessageDigest.getInstance("MD5")
 
@@ -22,6 +23,8 @@ fun hashMD5(input: String): BigInteger {
 }
 
 fun generateUserID(login: String): UniqID = hashMD5(login)
+
+fun randomUniqID() = BigInteger(128, Random())
 
 typealias UniqID = BigInteger
 

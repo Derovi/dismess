@@ -16,6 +16,7 @@ import by.dismess.core.security.Encryptor
 import by.dismess.core.services.NetworkService
 import by.dismess.core.services.StorageService
 import by.dismess.core.utils.UniqID
+import by.dismess.core.utils.randomUniqID
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import java.util.concurrent.ConcurrentHashMap
 
@@ -28,10 +29,19 @@ class ChatManagerImpl(
     val eventBUS: EventBus,
     val dht: DHT
 ) : ChatManager {
+    private class StartChatMessage(val chatID: UniqID, val senderID: UniqID)
+
     override val encryptors: ConcurrentHashMap<UniqID, Encryptor> = ConcurrentHashMap()
+    val chatID = randomUniqID()
     override suspend fun startChat(userID: UniqID, message: Message): Chat? {
-        // TODO("Not yet implemented")
-        return null
+        val ownID = dataManager.getId()
+        if (!userManager.sendPost(userID, "Chats/Start", StartChatMessage(chatID, ownID))) {
+            return null
+        }
+        val chat = Chat(chatID, ownID, userID, this)
+        chat.synchronize()
+        (chats as MutableMap<UniqID, Chat>)[chatID] = chat
+        return chat
     }
 
     override val chats = mapOf<UniqID, Chat>()
@@ -107,6 +117,13 @@ class ChatManagerImpl(
                 )
                 sendKey(key.senderID, backKey)
             }
+        }
+        networkService.registerPost("Chats/Start") {
+            it.data ?: return@registerPost
+            val message = klaxon.parse<StartChatMessage>(it.data!!) ?: return@registerPost
+            val chat = Chat(chatID, dataManager.getId(), message.senderID, this)
+            chat.synchronize()
+            (chats as MutableMap<UniqID, Chat>)[chatID] = chat
         }
     }
 
