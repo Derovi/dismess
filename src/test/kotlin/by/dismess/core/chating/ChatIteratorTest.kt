@@ -48,8 +48,8 @@ class ChatIteratorTest : KoinTest {
         for (date in dates) {
             val message = Message(
                 Date(date),
-                generateUserID(date.toString() + Random.nextInt()).rawID,
-                generateUserID(date.toString() + Random.nextInt()).rawID,
+                generateUserID(date.toString() + Random.nextInt()),
+                generateUserID(date.toString() + Random.nextInt()),
                 date.toString()
             )
             result.add(message)

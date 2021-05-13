@@ -2,11 +2,11 @@ package by.dismess.core.dht
 
 import by.dismess.core.chating.attachments.ImageAttachment
 import by.dismess.core.managers.DataManager
-import by.dismess.core.model.UserID
 import by.dismess.core.outer.NetworkInterface
 import by.dismess.core.outer.StorageInterface
 import by.dismess.core.services.NetworkService
 import by.dismess.core.services.StorageService
+import by.dismess.core.utils.UniqID
 import by.dismess.core.utils.generateUserID
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert
@@ -85,7 +85,7 @@ class DHTTest : KoinTest {
                 .joinToString("")
         }
 
-        override suspend fun getId(): UserID {
+        override suspend fun getId(): UniqID {
             return generateUserID(getRandomString(Random.nextInt(10, 60)))
         }
 
@@ -117,9 +117,9 @@ class DHTTest : KoinTest {
             return InetSocketAddress(randomIP, Random.nextInt(1000, 10000))
         }
 
-        override suspend fun saveLastIP(userID: UserID, ip: InetSocketAddress) {}
+        override suspend fun saveLastIP(userID: UniqID, ip: InetSocketAddress) {}
 
-        override suspend fun getLastIP(userID: UserID): InetSocketAddress? {
+        override suspend fun getLastIP(userID: UniqID): InetSocketAddress? {
             return null
         }
     }
@@ -134,7 +134,7 @@ class DHTTest : KoinTest {
         val networkService = NetworkService(networkInterface)
         val storageInterface = MockStorageInterface()
         val storageService = StorageService(storageInterface)
-        val DHT = DHTImpl(networkService, storageService)
+        val DHT = DHTImpl(networkService, storageService, dataManager)
     }
 
     @Test

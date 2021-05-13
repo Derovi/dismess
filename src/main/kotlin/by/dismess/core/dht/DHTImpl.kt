@@ -1,5 +1,6 @@
 package by.dismess.core.dht
 
+import by.dismess.core.managers.DataManager
 import by.dismess.core.services.NetworkService
 import by.dismess.core.services.StorageService
 import by.dismess.core.utils.UniqID
@@ -22,12 +23,13 @@ val RIGHT_BUCKET_BORDER: BigInteger = BigInteger("2").pow(160)
 
 class DHTImpl(
     val networkService: NetworkService,
-    val storageService: StorageService
+    val storageService: StorageService,
+    val dataManager: DataManager
 ) : DHT {
     private val tableMutex = Mutex()
     private var usersTable = mutableListOf<Bucket>()
-    private var ownerID: UniqID? = null
-    private var ownerIP: InetSocketAddress? = null
+    private var ownerID: UniqID = runBlocking { dataManager.getId() }
+    private var ownerIP: InetSocketAddress = runBlocking { dataManager.getOwnIP()!! }
 
     init {
         val bucket = Bucket(BucketBorder(BigInteger.ONE, RIGHT_BUCKET_BORDER))
@@ -101,7 +103,7 @@ class DHTImpl(
             pingBucket(bucket)
         }
 
-        if (ownerID!! inBucket bucket) {
+        if (ownerID inBucket bucket) {
             bucket.idToIP[user] = address
             if (bucket.idToIP.size > BUCKET_SIZE) {
                 val splitedBuckets = splitBucket(bucket)
@@ -188,7 +190,7 @@ class DHTImpl(
 
     override suspend fun connectTo(userID: UniqID, address: InetSocketAddress) {
         tableMutex.withLock { trySaveUser(userID, address) }
-        find(ownerID!!)
+        find(ownerID)
     }
 
     override suspend fun find(userID: UniqID): InetSocketAddress? {

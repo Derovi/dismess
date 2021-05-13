@@ -104,8 +104,8 @@ class Chat(
 
     val lastMessage: MessageIterator = runBlocking {
         ChatIterator.create(
-            FlowIterator.create(chatManager, ownFlow, ownFlow.lastMessage),
-            FlowIterator.create(chatManager, otherFlow, otherFlow.lastMessage)
+            FlowIterator.create(chatManager, ownFlow, ownFlow.lastMessage!!),
+            FlowIterator.create(chatManager, otherFlow, otherFlow.lastMessage!!)
         )
     }
 }
