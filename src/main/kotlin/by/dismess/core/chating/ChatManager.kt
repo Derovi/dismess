@@ -12,7 +12,6 @@ import by.dismess.core.utils.UniqID
 import java.util.concurrent.ConcurrentHashMap
 
 interface ChatManager {
-    suspend fun synchronize()
 
     val chats: Map<UniqID, Chat>
     val encryptors: ConcurrentHashMap<UniqID, Encryptor>

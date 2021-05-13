@@ -34,12 +34,6 @@ class ChatManagerImpl(
         return null
     }
 
-    override suspend fun synchronize() {
-        for (chat in chats.values) {
-            chat.synchronize()
-        }
-    }
-
     override val chats = mapOf<UniqID, Chat>()
 
     override suspend fun sendDirectMessage(userID: UniqID, message: Message): Boolean =
@@ -122,16 +116,23 @@ class ChatManagerImpl(
     }
 
     private suspend fun loadChats() {
+        chats as MutableMap<UniqID, Chat> // access to chat list mutation
         val ownID = dataManager.getId()
         val chatListStored = storageService.load<ChatListStored>("Chats/List") ?: ChatListStored()
         for (chatStored in chatListStored.chatsID) {
-            var otherID: UniqID
+            var otherID: UniqID? = null
             for (memberID in chatStored.membersID) {
                 if (memberID != ownID) {
                     otherID = memberID
                     break
                 }
             }
+            if (otherID == null) {
+                continue
+            }
+            val chat = Chat(chatStored.id, ownID, otherID, this)
+            chat.synchronize()
+            chats[chatStored.id] = chat
         }
     }
 }

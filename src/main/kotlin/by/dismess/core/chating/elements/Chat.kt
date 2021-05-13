@@ -23,10 +23,10 @@ import java.util.concurrent.atomic.AtomicBoolean
  * @see Flow
  */
 class Chat(
-    val ownID: UniqID,
-    val chatManager: ChatManager,
     val id: UniqID,
-    val otherID: UniqID
+    val ownID: UniqID,
+    val otherID: UniqID,
+    val chatManager: ChatManager
 ) {
 
     private val encryptor = Encryptor()
@@ -65,12 +65,12 @@ class Chat(
         ownFlow = Flow(
             chatManager,
             chatManager.loadFlow(FlowID(id, ownID), LoadMode.OWN) ?: throw Exception("Can't load own flow"),
-                LoadMode.OWN
+            LoadMode.OWN
         )
         otherFlow = Flow(
             chatManager,
             chatManager.loadFlow(FlowID(id, otherID), LoadMode.OTHER) ?: throw Exception("Can't load other flow"),
-                LoadMode.OTHER
+            LoadMode.OTHER
         )
     }
 
