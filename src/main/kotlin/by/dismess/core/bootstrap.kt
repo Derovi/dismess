@@ -39,7 +39,7 @@ private var managersModule = module {
 private var apiModule = module {
     // describes dependencies that should be visible for users
     single<App> { AppImpl(get(), get()) }
-    single<ChatManager> { ChatManagerImpl(get(), get(), get(), get(), get()) }
+    single<ChatManager> { ChatManagerImpl(get(), get(), get(), get(), get(), get()) }
     single { EventBus() }
 }
 

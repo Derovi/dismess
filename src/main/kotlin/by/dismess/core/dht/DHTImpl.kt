@@ -1,8 +1,8 @@
 package by.dismess.core.dht
 
-import by.dismess.core.model.UserID
 import by.dismess.core.services.NetworkService
 import by.dismess.core.services.StorageService
+import by.dismess.core.utils.UniqID
 import by.dismess.core.utils.generateUserID
 import by.dismess.core.utils.gson
 import kotlinx.coroutines.runBlocking
@@ -26,7 +26,7 @@ class DHTImpl(
 ) : DHT {
     private val tableMutex = Mutex()
     private var usersTable = mutableListOf<Bucket>()
-    private var ownerID: UserID? = null
+    private var ownerID: UniqID? = null
     private var ownerIP: InetSocketAddress? = null
 
     init {
@@ -36,7 +36,7 @@ class DHTImpl(
         registerPostHandlers()
     }
 
-    override fun initSelf(ownerID: UserID, ownerIP: InetSocketAddress) {
+    override fun initSelf(ownerID: UniqID, ownerIP: InetSocketAddress) {
         this.ownerID = ownerID
         this.ownerIP = ownerIP
         runBlocking {
@@ -89,7 +89,7 @@ class DHTImpl(
     }
 
     // Executed under mutex
-    private suspend fun trySaveUser(user: UserID, address: InetSocketAddress) {
+    private suspend fun trySaveUser(user: UniqID, address: InetSocketAddress) {
         val bucket = getUserBucket(user)
 
         if (bucket.idToIP.containsKey(user)) {
@@ -116,27 +116,27 @@ class DHTImpl(
     }
 
     // Executed under mutex
-    private fun getUserBucket(userId: UserID): Bucket = usersTable.first { userId inBucket it }
+    private fun getUserBucket(userId: UniqID): Bucket = usersTable.first { userId inBucket it }
 
     private suspend fun findNearestNodes(
-        target: UserID,
+        target: UniqID,
         count: Int
-    ): MutableMap<UserID, InetSocketAddress> {
-        val nearestUsers = mutableMapOf<UserID, InetSocketAddress>()
+    ): MutableMap<UniqID, InetSocketAddress> {
+        val nearestUsers = mutableMapOf<UniqID, InetSocketAddress>()
         nearestUsers.putAll(tableMutex.withLock { getUserBucket(target).idToIP })
 
         var findIterations = 0
 
-        val mapComparator = kotlin.Comparator { firstUser: UserID, secondUser: UserID ->
+        val mapComparator = kotlin.Comparator { firstUser: UniqID, secondUser: UniqID ->
             when {
                 firstUser distanceTo target < secondUser distanceTo target -> return@Comparator -1
                 firstUser distanceTo target > secondUser distanceTo target -> return@Comparator 1
                 else -> return@Comparator 0
             }
         }
-        val buffer = TreeMap<UserID, InetSocketAddress>(mapComparator)
+        val buffer = TreeMap<UniqID, InetSocketAddress>(mapComparator)
 
-        val previousIterationResult = mutableMapOf<UserID, InetSocketAddress>()
+        val previousIterationResult = mutableMapOf<UniqID, InetSocketAddress>()
         while (findIterations < MAX_FIND_ITERATIONS && !(nearestUsers equalTo previousIterationResult)) {
             buffer.clear()
             for (user in nearestUsers) {
@@ -186,12 +186,12 @@ class DHTImpl(
         return data
     }
 
-    override suspend fun connectTo(userID: UserID, address: InetSocketAddress) {
+    override suspend fun connectTo(userID: UniqID, address: InetSocketAddress) {
         tableMutex.withLock { trySaveUser(userID, address) }
         find(ownerID!!)
     }
 
-    override suspend fun find(userID: UserID): InetSocketAddress? {
+    override suspend fun find(userID: UniqID): InetSocketAddress? {
         var findAttempt = 0
         var nearestUsers = findNearestNodes(userID, FIND_FRONT).toList()
         while (nearestUsers.isEmpty() && findAttempt < MAX_FIND_ATTEMPTS) {

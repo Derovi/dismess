@@ -12,7 +12,6 @@ import by.dismess.core.events.MessageEvent
 import by.dismess.core.klaxon
 import by.dismess.core.managers.DataManager
 import by.dismess.core.managers.UserManager
-import by.dismess.core.model.UserID
 import by.dismess.core.security.Encryptor
 import by.dismess.core.services.NetworkService
 import by.dismess.core.services.StorageService
@@ -32,7 +31,7 @@ class ChatManagerImpl(
     val dht: DHT
 ) : ChatManager {
     override val encryptors: ConcurrentHashMap<UniqID, Encryptor> = ConcurrentHashMap()
-    override suspend fun startChat(userID: UserID, message: Message): Chat? {
+    override suspend fun startChat(userID: UniqID, message: Message): Chat? {
         // TODO("Not yet implemented")
         return null
     }
@@ -46,10 +45,10 @@ class ChatManagerImpl(
     override val chats = mapOf<UniqID, Chat>()
 
     override suspend fun sendDirectMessage(userID: UniqID, message: Message): Boolean =
-        userManager.sendPost(UserID(userID), "Chats/Send", message)
+        userManager.sendPost(userID, "Chats/Send", message)
 
     override suspend fun sendKey(userID: UniqID, key: KeyMessage): Boolean =
-        userManager.sendPost(UserID(userID), "Chats/Key", key)
+        userManager.sendPost(userID, "Chats/Key", key)
 
     override suspend fun loadChunk(chunkID: UniqID, chatID: UniqID): ChunkStored? {
         var result = storageService.load<ChunkStored>("chunks/$chunkID")
