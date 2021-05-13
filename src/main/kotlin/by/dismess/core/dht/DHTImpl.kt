@@ -1,6 +1,5 @@
 package by.dismess.core.dht
 
-import by.dismess.core.managers.DataManager
 import by.dismess.core.model.UserID
 import by.dismess.core.services.NetworkService
 import by.dismess.core.services.StorageService

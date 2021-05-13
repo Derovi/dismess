@@ -3,7 +3,7 @@ package by.dismess.core.model
 import by.dismess.core.utils.UniqID
 import java.net.InetAddress
 import java.net.InetSocketAddress
-import java.util.*
+import java.util.Base64
 
 class Invite(var userId: UniqID, var address: InetSocketAddress) {
 
