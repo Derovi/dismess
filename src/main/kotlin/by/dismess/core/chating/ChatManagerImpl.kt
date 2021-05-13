@@ -67,24 +67,27 @@ class ChatManagerImpl(
         }
     }
 
-    override suspend fun acceptChunk(chunk: ChunkStored) {
-        storageService.save("chunks/${chunk.id.uniqID}", chunk)
+    override suspend fun persistChunk(chunk: ChunkStored, loadMode: LoadMode): Boolean {
+        if (loadMode == LoadMode.OWN) {
+            storageService.save("chunks/${chunk.id.uniqID}", chunk)
+            return true
+        } else {
+            val chatID = chunk.id.flowID.chatID
+            val chatEncryptor = encryptors[chatID] ?: return false
+            val chunkRaw = klaxon.toJsonString(chunk).toByteArray()
+            val encrypted = chatEncryptor.encrypt(chunkRaw)
+            return dht.store("chunks/${chunk.id.uniqID}", encrypted)
+        }
     }
 
-    override suspend fun persistChunk(chunk: ChunkStored): Boolean {
-        val chatID = chunk.id.flowID.chatID
-        val chatEncryptor = encryptors[chatID] ?: return false
-        val chunkRaw = klaxon.toJsonString(chunk).toByteArray()
-        val encrypted = chatEncryptor.encrypt(chunkRaw)
-        return dht.store("chunks/${chunk.id.uniqID}", encrypted)
+    override suspend fun persistFlow(flow: FlowStored, loadMode: LoadMode): Boolean {
+        return if (loadMode == LoadMode.OWN) {
+            storageService.save("flows/${flow.id.uniqID}", flow)
+            true
+        } else {
+            dht.store("flows/${flow.id.uniqID}", klaxon.toJsonString(flow).toByteArray())
+        }
     }
-
-    override suspend fun acceptFlow(flow: FlowStored) {
-        storageService.save("flows/${flow.id.uniqID}", flow)
-    }
-
-    override suspend fun persistFlow(flow: FlowStored): Boolean =
-        dht.store("flows/${flow.id.uniqID}", klaxon.toJsonString(flow).toByteArray())
 
     private fun registerHandlers() {
         networkService.registerPost("Chats/Send") {
@@ -92,7 +95,7 @@ class ChatManagerImpl(
             val message = klaxon.parse<Message>(it.data!!) ?: return@registerPost
             val chat = chats[message.chatID] ?: return@registerPost
             chat.otherFlow.addMessage(message)
-            chat.otherFlow.accept() // TODO optimize
+            chat.otherFlow.persist() // TODO optimize
             eventBUS.callEvent(MessageEvent(message))
         }
         networkService.registerPost("Chats/Key") {
@@ -129,7 +132,6 @@ class ChatManagerImpl(
                     break
                 }
             }
-
         }
     }
 }

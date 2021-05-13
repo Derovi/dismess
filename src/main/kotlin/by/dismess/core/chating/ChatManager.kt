@@ -30,9 +30,6 @@ interface ChatManager {
     suspend fun loadFlow(flowID: FlowID, loadMode: LoadMode) = loadFlow(flowID.uniqID, loadMode)
     suspend fun loadFlow(flowID: UniqID, loadMode: LoadMode): FlowStored?
 
-    suspend fun acceptChunk(chunk: ChunkStored)
-    suspend fun persistChunk(chunk: ChunkStored): Boolean
-
-    suspend fun acceptFlow(flow: FlowStored)
-    suspend fun persistFlow(flow: FlowStored): Boolean
+    suspend fun persistChunk(chunk: ChunkStored, loadMode: LoadMode): Boolean
+    suspend fun persistFlow(flow: FlowStored, loadMode: LoadMode): Boolean
 }

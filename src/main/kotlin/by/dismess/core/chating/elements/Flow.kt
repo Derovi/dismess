@@ -50,17 +50,6 @@ class Flow(
         }
     }
 
-    override suspend fun accept() {
-        for (idx in max(0, stored.chunkCount - 1) until chunks.size) {
-            chunks[idx]?.accept()
-        }
-        if (stored.chunkCount == chunks.size) {
-            return
-        }
-        val newStored = FlowStored(id, chunks.size)
-        chatManager.acceptFlow(newStored)
-    }
-
     override suspend fun persist(): Boolean {
         for (idx in max(0, stored.chunkCount - 1) until chunks.size) {
             if (!chunks[idx]!!.persist()) {
@@ -71,6 +60,6 @@ class Flow(
             return true
         }
         val newStored = FlowStored(id, chunks.size)
-        return chatManager.persistFlow(newStored)
+        return chatManager.persistFlow(newStored, loadMode)
     }
 }

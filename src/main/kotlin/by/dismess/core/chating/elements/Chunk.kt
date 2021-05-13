@@ -45,19 +45,11 @@ class Chunk(
         byteSize += message.byteSize
     }
 
-    override suspend fun accept() {
-        if (storedSize == messages.size) {
-            return
-        }
-        chatManager.acceptChunk(ChunkStored(id, complete, messages))
-        storedSize = messages.size
-    }
-
     override suspend fun persist(): Boolean {
         if (storedSize == messages.size) {
             return true
         }
-        if (!chatManager.persistChunk(ChunkStored(id, complete, messages))) {
+        if (!chatManager.persistChunk(ChunkStored(id, complete, messages), loadMode)) {
             return false
         }
         storedSize = messages.size
