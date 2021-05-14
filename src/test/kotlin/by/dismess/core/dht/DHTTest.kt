@@ -1,20 +1,11 @@
 package by.dismess.core.dht
 
-import by.dismess.core.chating.attachments.ImageAttachment
 import by.dismess.core.common.VirtualNetwork
 import by.dismess.core.common.VirtualUser
-import by.dismess.core.managers.DataManager
-import by.dismess.core.outer.NetworkInterface
-import by.dismess.core.outer.StorageInterface
-import by.dismess.core.services.NetworkService
-import by.dismess.core.services.StorageService
-import by.dismess.core.utils.UniqID
-import by.dismess.core.utils.generateUserID
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert
 import org.junit.Test
 import org.koin.test.KoinTest
-import java.net.InetSocketAddress
 import kotlin.random.Random
 
 class DHTTest : KoinTest {
@@ -25,56 +16,6 @@ class DHTTest : KoinTest {
             .map { allowedChars.random() }
             .joinToString("")
     }
-
-    class MockDataManager : DataManager {
-
-        private fun getRandomString(length: Int): String {
-            val allowedChars = ('A'..'Z') + ('a'..'z') + ('0'..'9')
-            return (1..length)
-                .map { allowedChars.random() }
-                .joinToString("")
-        }
-
-        override suspend fun getId(): UniqID {
-            return generateUserID(getRandomString(Random.nextInt(10, 60)))
-        }
-
-        override suspend fun saveLogin(login: String) {}
-
-        override suspend fun getLogin(): String? {
-            return null
-        }
-
-        override suspend fun saveDisplayName(displayName: String) {}
-
-        override suspend fun getDisplayName(): String? {
-            return null
-        }
-
-        override suspend fun saveAvatar(avatar: ImageAttachment) {}
-
-        override suspend fun getAvatar(): ImageAttachment? {
-            return null
-        }
-
-        override suspend fun setOwnIP(ip: InetSocketAddress) {}
-
-        override suspend fun getOwnIP(): InetSocketAddress? {
-            var randomIP = Random.nextInt(256).toString()
-            repeat(3) {
-                randomIP += "." + Random.nextInt(256)
-            }
-            return InetSocketAddress(randomIP, Random.nextInt(1000, 10000))
-        }
-
-        override suspend fun saveLastIP(userID: UniqID, ip: InetSocketAddress) {}
-
-        override suspend fun getLastIP(userID: UniqID): InetSocketAddress? {
-            return null
-        }
-    }
-
-
 
     @Test
     fun findTest() {

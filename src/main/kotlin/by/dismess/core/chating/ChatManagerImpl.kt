@@ -29,11 +29,11 @@ class ChatManagerImpl(
     val eventBUS: EventBus,
     val dht: DHT
 ) : ChatManager {
-    private class StartChatMessage(val chatID: UniqID, val senderID: UniqID)
+    class StartChatMessage(val chatID: UniqID, val senderID: UniqID)
 
     override val encryptors: ConcurrentHashMap<UniqID, Encryptor> = ConcurrentHashMap()
     val chatID = randomUniqID()
-    override suspend fun startChat(userID: UniqID, message: Message): Chat? {
+    override suspend fun startChat(userID: UniqID): Chat? {
         val ownID = dataManager.getId()
         if (!userManager.sendPost(userID, "Chats/Start", StartChatMessage(chatID, ownID))) {
             return null
