@@ -2,12 +2,12 @@ package by.dismess.core.common
 
 import by.dismess.core.chating.ChatManager
 import by.dismess.core.chating.ChatManagerImpl
-import by.dismess.core.dht.DHT
+import by.dismess.core.common.dht.VirtualDHT
+import by.dismess.core.common.dht.VirtualDHTCommon
 import by.dismess.core.dht.DHTImpl
 import by.dismess.core.events.EventBus
 import by.dismess.core.managers.DataManager
 import by.dismess.core.managers.UserManager
-import by.dismess.core.managers.impl.DataManagerImpl
 import by.dismess.core.managers.impl.UserManagerImpl
 import by.dismess.core.outer.NetworkInterface
 import by.dismess.core.outer.StorageInterface
@@ -21,13 +21,18 @@ import java.net.InetSocketAddress
 class VirtualNetwork {
     private val networkInterfaces = mutableMapOf<InetSocketAddress, VirtualNetworkInterface>()
 
+    private var virtualDHTCommon: VirtualDHTCommon? = null
+
     val configuration = Configuration()
-    class Configuration {
+    inner class Configuration {
         var useSecureNI = false
         fun useSecureNI(value: Boolean = true) = this.also { useSecureNI = value }
 
         var useVirtualDHT = false
-        fun useVirtualDHT(value: Boolean = true) = this.also { useVirtualDHT = value }
+        fun useVirtualDHT(value: Boolean = true) = this.also {
+            useVirtualDHT = value
+            virtualDHTCommon = VirtualDHTCommon()
+        }
     }
 
     fun createUser(): VirtualUser = VirtualUser(
@@ -43,7 +48,14 @@ class VirtualNetwork {
                 }
                 result
             }
-            single<DHT> { DHTImpl(get(), get(), get()) }
+            single {
+                val dataManager = get<DataManager>()
+                return@single if (configuration.useVirtualDHT) {
+                    VirtualDHT(virtualDHTCommon!!)
+                } else {
+                    DHTImpl(get(), get(), get())
+                }.also { runBlocking { it.initSelf(dataManager.getId(), dataManager.getOwnIP()!!) } }
+            }
             single<StorageInterface> { InMemoryStorageInterface() }
             single { NetworkService(get()) }
             single { StorageService(get()) }
