@@ -16,9 +16,17 @@ class MockDataManager : DataManager {
             .joinToString("")
     }
 
-    override suspend fun getId(): UniqID {
-        return generateUserID(getRandomString(Random.nextInt(10, 60)))
+    private val id = generateUserID(getRandomString(Random.nextInt(10, 60)))
+    private val ip = run {
+        var randomIP = Random.nextInt(256).toString()
+        repeat(3) {
+            randomIP += "." + Random.nextInt(256)
+        }
+        InetSocketAddress(randomIP, Random.nextInt(1000, 10000))
     }
+    override suspend fun getOwnIP(): InetSocketAddress? = ip
+
+    override suspend fun getId(): UniqID = id
 
     override suspend fun saveLogin(login: String) {}
 
@@ -39,14 +47,6 @@ class MockDataManager : DataManager {
     }
 
     override suspend fun setOwnIP(ip: InetSocketAddress) {}
-
-    override suspend fun getOwnIP(): InetSocketAddress? {
-        var randomIP = Random.nextInt(256).toString()
-        repeat(3) {
-            randomIP += "." + Random.nextInt(256)
-        }
-        return InetSocketAddress(randomIP, Random.nextInt(1000, 10000))
-    }
 
     override suspend fun saveLastIP(userID: UniqID, ip: InetSocketAddress) {}
 

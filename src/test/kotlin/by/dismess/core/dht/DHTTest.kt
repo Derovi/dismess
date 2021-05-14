@@ -1,7 +1,6 @@
 package by.dismess.core.dht
 
 import by.dismess.core.common.VirtualNetwork
-import by.dismess.core.common.VirtualUser
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert
 import org.junit.Test
@@ -23,15 +22,11 @@ class DHTTest : KoinTest {
 
         val firstUser = network.createUser()
         val usersList = mutableListOf(firstUser)
-        println("created")
 
         for (i in 1..1000) {
-            println("Added")
             usersList.add(network.createUser())
-            println("created")
             val randomUser = usersList[Random.nextInt(i)]
             runBlocking { usersList[i].dht.connectTo(randomUser.id, randomUser.address) }
-            println("connected")
         }
 
         for (i in 1..1000) {

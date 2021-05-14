@@ -10,7 +10,6 @@ class ChatManagerTest {
         val virtualNetwork = VirtualNetwork()
         virtualNetwork.configuration
             .useVirtualDHT()
-            .useSecureNI()
 
         val firstUser = virtualNetwork.createUser()
         val secondUser = virtualNetwork.createUser()

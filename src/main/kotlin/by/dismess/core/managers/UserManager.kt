@@ -1,7 +1,7 @@
 package by.dismess.core.managers
 
-import by.dismess.core.model.User
 import by.dismess.core.chating.attachments.ImageAttachment
+import by.dismess.core.model.User
 import by.dismess.core.utils.UniqID
 
 interface UserManager {

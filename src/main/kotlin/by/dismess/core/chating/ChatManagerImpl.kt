@@ -36,6 +36,7 @@ class ChatManagerImpl(
     override suspend fun startChat(userID: UniqID): Chat? {
         val ownID = dataManager.getId()
         if (!userManager.sendPost(userID, "Chats/Start", StartChatMessage(chatID, ownID))) {
+            println("CM null")
             return null
         }
         val chat = Chat(chatID, ownID, userID, this)

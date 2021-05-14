@@ -1,11 +1,11 @@
 package by.dismess.core.managers.impl
 
+import by.dismess.core.chating.attachments.ImageAttachment
 import by.dismess.core.dht.DHT
 import by.dismess.core.klaxon
 import by.dismess.core.managers.DataManager
 import by.dismess.core.managers.UserManager
 import by.dismess.core.model.User
-import by.dismess.core.chating.attachments.ImageAttachment
 import by.dismess.core.network.MessageType
 import by.dismess.core.network.NetworkMessage
 import by.dismess.core.services.NetworkService

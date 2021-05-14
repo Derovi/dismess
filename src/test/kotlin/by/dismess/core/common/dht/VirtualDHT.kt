@@ -17,7 +17,11 @@ class VirtualDHT(val common: VirtualDHTCommon) : DHT {
     override suspend fun retrieve(key: String): ByteArray? = common.storage[key]
     override suspend fun connectTo(userID: UniqID, address: InetSocketAddress) {}
 
-    override suspend fun find(userID: UniqID): InetSocketAddress? = common.users[userID]
+    override suspend fun find(userID: UniqID): InetSocketAddress? {
+        println("find: $userID")
+        println(common.users)
+        return common.users[userID]
+    }
 
     override suspend fun isValidLogin(address: InetSocketAddress, login: String): Boolean {
         return true
