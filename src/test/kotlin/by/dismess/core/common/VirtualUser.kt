@@ -1,32 +1,32 @@
 package by.dismess.core.common
 
-import by.dismess.core.chating.ChatManagerImpl
-import by.dismess.core.dht.DHTImpl
-import by.dismess.core.events.EventBus
-import by.dismess.core.managers.impl.UserManagerImpl
+import by.dismess.core.chating.ChatManager
+import by.dismess.core.dht.DHT
+import by.dismess.core.managers.DataManager
+import by.dismess.core.managers.UserManager
 import by.dismess.core.services.NetworkService
 import by.dismess.core.services.StorageService
 import kotlinx.coroutines.runBlocking
+import org.koin.core.module.Module
+import org.koin.dsl.koinApplication
 
 class VirtualUser(
-    network: VirtualNetwork
+    module: Module
 ) {
-    val dataManager = MockDataManager()
+    val app = koinApplication {
+        modules(module)
+    }
+
+    init {
+        app.createEagerInstances()
+    }
+
+    val dht = app.koin.get<DHT>()
+    val networkService = app.koin.get<NetworkService>()
+    val storageService = app.koin.get<StorageService>()
+    val chatManager = app.koin.get<ChatManager>()
+    val dataManager = app.koin.get<DataManager>()
+    val userManager = app.koin.get<UserManager>()
     val address = runBlocking { dataManager.getOwnIP()!! }
     val id = runBlocking { dataManager.getId() }
-    val networkInterface = VirtualNetworkInterface(network, address)
-    val networkService = NetworkService(networkInterface)
-    val storageInterface = InMemoryStorageInterface()
-    val storageService = StorageService(storageInterface)
-    val dht = DHTImpl(networkService, storageService, dataManager)
-    val eventBUS = EventBus()
-    val userManager = UserManagerImpl(dht, networkService, dataManager)
-    val chatManager = ChatManagerImpl(
-        dataManager,
-        userManager,
-        networkService,
-        storageService,
-        eventBUS,
-        dht
-    )
 }

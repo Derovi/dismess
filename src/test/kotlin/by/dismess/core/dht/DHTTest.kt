@@ -21,13 +21,17 @@ class DHTTest : KoinTest {
     fun findTest() {
         val network = VirtualNetwork()
 
-        val firstUser = VirtualUser(network)
+        val firstUser = network.createUser()
         val usersList = mutableListOf(firstUser)
+        println("created")
 
         for (i in 1..1000) {
-            usersList.add(VirtualUser(network))
+            println("Added")
+            usersList.add(network.createUser())
+            println("created")
             val randomUser = usersList[Random.nextInt(i)]
             runBlocking { usersList[i].dht.connectTo(randomUser.id, randomUser.address) }
+            println("connected")
         }
 
         for (i in 1..1000) {
@@ -47,8 +51,8 @@ class DHTTest : KoinTest {
     fun findSimpleTest() {
         val network = VirtualNetwork()
 
-        val alice = VirtualUser(network)
-        val bob = VirtualUser(network)
+        val alice = network.createUser()
+        val bob = network.createUser()
         runBlocking { bob.dht.connectTo(alice.id, alice.address) }
 
         Assert.assertEquals(runBlocking { alice.dht.find(bob.id) }, bob.address)
@@ -59,8 +63,8 @@ class DHTTest : KoinTest {
     fun storeSimpleTest() {
         val network = VirtualNetwork()
 
-        val alice = VirtualUser(network)
-        val bob = VirtualUser(network)
+        val alice = network.createUser()
+        val bob = network.createUser()
         runBlocking { bob.dht.connectTo(alice.id, alice.address) }
 
         val message = "Very interesting text"
@@ -78,11 +82,11 @@ class DHTTest : KoinTest {
     @Test
     fun storeTest() {
         val network = VirtualNetwork()
-        val firstUser = VirtualUser(network)
+        val firstUser = network.createUser()
         val usersList = mutableListOf(firstUser)
 
         for (i in 1..1000) {
-            usersList.add(VirtualUser(network))
+            usersList.add(network.createUser())
             val randomUser = usersList[Random.nextInt(i)]
             runBlocking { usersList[i].dht.connectTo(randomUser.id, randomUser.address) }
         }
