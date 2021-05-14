@@ -18,15 +18,15 @@ class VirtualUser(
     val networkService = NetworkService(networkInterface)
     val storageInterface = InMemoryStorageInterface()
     val storageService = StorageService(storageInterface)
-    val DHT = DHTImpl(networkService, storageService, dataManager)
+    val dht = DHTImpl(networkService, storageService, dataManager)
     val eventBUS = EventBus()
-    val userManager = UserManagerImpl(DHT, networkService, dataManager)
+    val userManager = UserManagerImpl(dht, networkService, dataManager)
     val chatManager = ChatManagerImpl(
         dataManager,
         userManager,
         networkService,
         storageService,
         eventBUS,
-        DHT
+        dht
     )
 }

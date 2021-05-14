@@ -27,7 +27,7 @@ class DHTTest : KoinTest {
         for (i in 1..1000) {
             usersList.add(VirtualUser(network))
             val randomUser = usersList[Random.nextInt(i)]
-            runBlocking { usersList[i].DHT.connectTo(randomUser.id, randomUser.address) }
+            runBlocking { usersList[i].dht.connectTo(randomUser.id, randomUser.address) }
         }
 
         for (i in 1..1000) {
@@ -38,7 +38,7 @@ class DHTTest : KoinTest {
             }
             val targetID = usersList[target].id
             val targetAddress = usersList[target].address
-            val findResult = runBlocking { usersList[user].DHT.find(targetID) }
+            val findResult = runBlocking { usersList[user].dht.find(targetID) }
             Assert.assertEquals(findResult, targetAddress)
         }
     }
@@ -49,10 +49,10 @@ class DHTTest : KoinTest {
 
         val alice = VirtualUser(network)
         val bob = VirtualUser(network)
-        runBlocking { bob.DHT.connectTo(alice.id, alice.address) }
+        runBlocking { bob.dht.connectTo(alice.id, alice.address) }
 
-        Assert.assertEquals(runBlocking { alice.DHT.find(bob.id) }, bob.address)
-        Assert.assertEquals(runBlocking { bob.DHT.find(alice.id) }, alice.address)
+        Assert.assertEquals(runBlocking { alice.dht.find(bob.id) }, bob.address)
+        Assert.assertEquals(runBlocking { bob.dht.find(alice.id) }, alice.address)
     }
 
     @Test
@@ -61,17 +61,17 @@ class DHTTest : KoinTest {
 
         val alice = VirtualUser(network)
         val bob = VirtualUser(network)
-        runBlocking { bob.DHT.connectTo(alice.id, alice.address) }
+        runBlocking { bob.dht.connectTo(alice.id, alice.address) }
 
         val message = "Very interesting text"
-        Assert.assertTrue(runBlocking { alice.DHT.store("Secrete message", message.toByteArray()) })
+        Assert.assertTrue(runBlocking { alice.dht.store("Secrete message", message.toByteArray()) })
 
-        val aliceResponse = String(runBlocking { alice.DHT.retrieve("Secrete message") } ?: ByteArray(0))
-        val bobResponse = String(runBlocking { bob.DHT.retrieve("Secrete message") } ?: ByteArray(0))
+        val aliceResponse = String(runBlocking { alice.dht.retrieve("Secrete message") } ?: ByteArray(0))
+        val bobResponse = String(runBlocking { bob.dht.retrieve("Secrete message") } ?: ByteArray(0))
         Assert.assertEquals(message, aliceResponse)
         Assert.assertEquals(message, bobResponse)
 
-        val emptyResponse = String(runBlocking { alice.DHT.retrieve("Wrong key") } ?: ByteArray(0))
+        val emptyResponse = String(runBlocking { alice.dht.retrieve("Wrong key") } ?: ByteArray(0))
         Assert.assertEquals(String(), emptyResponse)
     }
 
@@ -84,7 +84,7 @@ class DHTTest : KoinTest {
         for (i in 1..1000) {
             usersList.add(VirtualUser(network))
             val randomUser = usersList[Random.nextInt(i)]
-            runBlocking { usersList[i].DHT.connectTo(randomUser.id, randomUser.address) }
+            runBlocking { usersList[i].dht.connectTo(randomUser.id, randomUser.address) }
         }
 
         val data = mutableMapOf<String, String>()
@@ -92,18 +92,18 @@ class DHTTest : KoinTest {
             val key = getRandomString(Random.nextInt(50, 100))
             val message = getRandomString(Random.nextInt(100))
             data[key] = message
-            Assert.assertTrue(runBlocking { firstUser.DHT.store(key, message.toByteArray()) })
+            Assert.assertTrue(runBlocking { firstUser.dht.store(key, message.toByteArray()) })
         }
 
         for (request in data) {
-            val response = runBlocking { firstUser.DHT.retrieve(request.key) }
+            val response = runBlocking { firstUser.dht.retrieve(request.key) }
             val message = String(response ?: ByteArray(0))
             Assert.assertEquals(request.value, message)
         }
 
         for (i in 1..100) {
             val wrongKey = getRandomString(Random.nextInt(50, 100))
-            val response = runBlocking { firstUser.DHT.retrieve(wrongKey) }
+            val response = runBlocking { firstUser.dht.retrieve(wrongKey) }
             val message = String(response ?: ByteArray(0))
             Assert.assertEquals(message, String())
         }

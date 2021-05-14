@@ -11,7 +11,7 @@ class ChatManagerTest {
         val virtualNetwork = VirtualNetwork()
         val firstUser = VirtualUser(virtualNetwork)
         val secondUser = VirtualUser(virtualNetwork)
-        firstUser.DHT.connectTo(secondUser.id, secondUser.address)
+        firstUser.dht.connectTo(secondUser.id, secondUser.address)
         firstUser.chatManager.startChat(secondUser.dataManager.getId())
         println(firstUser.chatManager.chats.size)
         println(secondUser.chatManager.chats.size)
