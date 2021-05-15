@@ -33,8 +33,9 @@ class ChatManagerImpl(
     class StartChatMessage(val chatID: UniqID, val senderID: UniqID)
 
     override val encryptors: ConcurrentHashMap<UniqID, Encryptor> = ConcurrentHashMap()
-    val chatID = randomUniqID()
+
     override suspend fun startChat(userID: UniqID): Chat? {
+        val chatID = randomUniqID()
         val ownID = dataManager.getId()
         if (!userManager.sendPost(userID, "Chats/Start", StartChatMessage(chatID, ownID))) {
             println("CM null")
@@ -123,9 +124,9 @@ class ChatManagerImpl(
         networkService.registerPost("Chats/Start") {
             it.data ?: return@registerPost
             val message = gson.fromJson(it.data!!, StartChatMessage::class.java) ?: return@registerPost
-            val chat = Chat(chatID, dataManager.getId(), message.senderID, this)
+            val chat = Chat(message.chatID, dataManager.getId(), message.senderID, this)
             chat.synchronize()
-            (chats as MutableMap<UniqID, Chat>)[chatID] = chat
+            (chats as MutableMap<UniqID, Chat>)[message.chatID] = chat
         }
     }
 

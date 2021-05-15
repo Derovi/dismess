@@ -1,5 +1,7 @@
 package by.dismess.core.chating
 
+import by.dismess.core.chating.viewing.FlowIterator
+import by.dismess.core.chating.viewing.MessageIterator
 import by.dismess.core.common.VirtualNetwork
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert
@@ -19,11 +21,18 @@ class ChatManagerTest {
         Assert.assertNotNull(chat1)
         Assert.assertEquals(firstUser.chatManager.chats.size, 1)
         Assert.assertEquals(secondUser.chatManager.chats.size, 1)
-//        println(chat1!!.id)
-//        println(secondUser.chatManager.chats.entries.first().value.id)
-//        val chat2 = secondUser.chatManager.chats[chat1!!.id]
-//        Assert.assertNotNull(chat2)
-//        chat1.sendMessage("Kek lol!")
-//        val iter1 = chat1.lastMessage
+        println(chat1!!.id)
+        println(secondUser.chatManager.chats.entries.first().value.id)
+        val chat2 = secondUser.chatManager.chats[chat1!!.id]
+        Assert.assertNotNull(chat2)
+        chat1.sendMessage("Kek lol!")
+        val iter1: MessageIterator
+        runBlocking {
+            iter1 = FlowIterator.create(
+                secondUser.chatManager,
+                chat2!!.ownFlow,
+                chat2.ownFlow.lastMessage!!
+            )
+        }
     }
 }
