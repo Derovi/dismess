@@ -53,5 +53,6 @@ fun retrievePublicSocketAddress(port: Int): InetSocketAddress? {
     receiveMessageHeader.parseAttributes(receivedPacket.data)
     val mappedAddress: MappedAddress = receiveMessageHeader
         .getMessageAttribute(MessageAttributeInterface.MessageAttributeType.MappedAddress) as MappedAddress
+    socket.close()
     return InetSocketAddress(mappedAddress.address.inetAddress, mappedAddress.port)
 }
