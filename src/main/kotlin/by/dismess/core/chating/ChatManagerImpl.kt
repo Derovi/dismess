@@ -1,6 +1,7 @@
 package by.dismess.core.chating
 
 import by.dismess.core.chating.elements.Chat
+import by.dismess.core.chating.elements.Chunk
 import by.dismess.core.chating.elements.KeyMessage
 import by.dismess.core.chating.elements.Message
 import by.dismess.core.chating.elements.stored.ChatListStored
@@ -9,7 +10,6 @@ import by.dismess.core.chating.elements.stored.FlowStored
 import by.dismess.core.dht.DHT
 import by.dismess.core.events.EventBus
 import by.dismess.core.events.MessageEvent
-import by.dismess.core.klaxon
 import by.dismess.core.managers.DataManager
 import by.dismess.core.managers.UserManager
 import by.dismess.core.security.Encryptor
@@ -38,7 +38,6 @@ class ChatManagerImpl(
         val chatID = randomUniqID()
         val ownID = dataManager.getId()
         if (!userManager.sendPost(userID, "Chats/Start", StartChatMessage(chatID, ownID))) {
-            println("CM null")
             return null
         }
         val chat = Chat(chatID, ownID, userID, this)
@@ -61,7 +60,7 @@ class ChatManagerImpl(
             val chunkRaw: ByteArray = dht.retrieve("chunks/$chunkID") ?: return null
             val chatEncryptor = encryptors[chatID] ?: return null
             val decrypted = chatEncryptor.decrypt(chunkRaw)
-            result = klaxon.parse<ChunkStored>(String(decrypted)) ?: return null
+            result = gson.fromJson(String(decrypted), ChunkStored::class.java) ?: return null
         }
         return result
     }
@@ -70,20 +69,16 @@ class ChatManagerImpl(
         return if (loadMode == LoadMode.OWN) {
             storageService.load("flows/$flowID")
         } else {
-            klaxon.parse<FlowStored>(String(dht.retrieve("flows/$flowID") ?: return null))
+            gson.fromJson(String(dht.retrieve("flows/$flowID") ?: return null), FlowStored::class.java)
         }
     }
 
     override suspend fun persistChunk(chunk: ChunkStored, loadMode: LoadMode): Boolean {
-        if (loadMode == LoadMode.OWN) {
+        return if (loadMode == LoadMode.OWN) {
             storageService.save("chunks/${chunk.id.uniqID}", chunk)
-            return true
+            true
         } else {
-            val chatID = chunk.id.flowID.chatID
-            val chatEncryptor = encryptors[chatID] ?: return false
-            val chunkRaw = klaxon.toJsonString(chunk).toByteArray()
-            val encrypted = chatEncryptor.encrypt(chunkRaw)
-            return dht.store("chunks/${chunk.id.uniqID}", encrypted)
+            dht.store("chunks/${chunk.id.uniqID}", gson.toJson(chunk).toByteArray())
         }
     }
 
@@ -92,22 +87,24 @@ class ChatManagerImpl(
             storageService.save("flows/${flow.id.uniqID}", flow)
             true
         } else {
-            dht.store("flows/${flow.id.uniqID}", klaxon.toJsonString(flow).toByteArray())
+            dht.store("flows/${flow.id.uniqID}", gson.toJson(flow).toByteArray())
         }
     }
 
     private fun registerHandlers() {
         networkService.registerPost("Chats/Send") {
+            println("mes rec!")
             it.data ?: return@registerPost
-            val message = klaxon.parse<Message>(it.data!!) ?: return@registerPost
+            val message = gson.fromJson(it.data!!, Message::class.java) ?: return@registerPost
             val chat = chats[message.chatID] ?: return@registerPost
             chat.otherFlow.addMessage(message)
             chat.otherFlow.persist() // TODO optimize
+            println("Add!")
             eventBUS.callEvent(MessageEvent(message))
         }
         networkService.registerPost("Chats/Key") {
             it.data ?: return@registerPost
-            val key = klaxon.parse<KeyMessage>(it.data!!) ?: return@registerPost
+            val key = gson.fromJson(it.data!!, KeyMessage::class.java) ?: return@registerPost
             val encryptor = encryptors[key.chatID] ?: return@registerPost
             encryptor.updateKey()
             val updated = encryptor.setReceiverPublicKey(key.key)

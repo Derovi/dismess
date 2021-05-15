@@ -38,7 +38,7 @@ class Chunk(
     }
 
     val complete: Boolean
-        get() = byteSize < BYTE_SIZE_FRONTIER
+        get() = byteSize > BYTE_SIZE_FRONTIER
 
     fun addMessage(message: Message) {
         (messages as MutableList<Message>).add(message)

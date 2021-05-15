@@ -1,6 +1,5 @@
 package by.dismess.core.dht
 
-import by.dismess.core.klaxon
 import by.dismess.core.utils.UniqID
 
 data class FindRequest(val targetUser: UniqID, val sender: UniqID)
@@ -38,9 +37,3 @@ fun splitBucket(bucket: Bucket): Pair<Bucket, Bucket> {
     }
     return Pair(leftBucket, rightBucket)
 }
-
-suspend fun DHT.store(key: String, data: Any) {
-    this.store(key, klaxon.toJsonString(data).toByteArray())
-}
-
-suspend inline fun <reified T> DHT.load(key: String) = klaxon.parse<T>(String(this.retrieve(key) ?: ByteArray(0)))

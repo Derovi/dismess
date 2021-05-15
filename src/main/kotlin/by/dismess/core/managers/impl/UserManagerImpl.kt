@@ -2,7 +2,6 @@ package by.dismess.core.managers.impl
 
 import by.dismess.core.chating.attachments.ImageAttachment
 import by.dismess.core.dht.DHT
-import by.dismess.core.klaxon
 import by.dismess.core.managers.DataManager
 import by.dismess.core.managers.UserManager
 import by.dismess.core.model.User
@@ -10,6 +9,7 @@ import by.dismess.core.network.MessageType
 import by.dismess.core.network.NetworkMessage
 import by.dismess.core.services.NetworkService
 import by.dismess.core.utils.UniqID
+import by.dismess.core.utils.gson
 
 class UserManagerImpl(
     val dht: DHT,
@@ -31,7 +31,7 @@ class UserManagerImpl(
     }
 
     override suspend fun sendPost(target: UniqID, tag: String, data: Any, timeout: Long): Boolean =
-        sendPost(target, tag, klaxon.toJsonString(data), timeout)
+        sendPost(target, tag, gson.toJson(data), timeout)
 
     override suspend fun sendPost(target: UniqID, tag: String, timeout: Long): Boolean =
         sendRequest(target, NetworkMessage(MessageType.POST, tag), timeout) != null
@@ -40,7 +40,7 @@ class UserManagerImpl(
         sendRequest(target, NetworkMessage(MessageType.POST, tag, data), timeout) != null
 
     override suspend fun sendGet(target: UniqID, tag: String, data: Any, timeout: Long): String? =
-        sendGet(target, tag, klaxon.toJsonString(data), timeout)
+        sendGet(target, tag, gson.toJson(data), timeout)
 
     override suspend fun sendGet(target: UniqID, tag: String, timeout: Long): String? =
         sendRequest(target, NetworkMessage(MessageType.GET, tag), timeout)?.data
@@ -72,11 +72,11 @@ class UserManagerImpl(
         sendPost(userId, "user/ping", userId)
 
     override suspend fun retrieveUser(userId: UniqID): User? {
-        val user = sendGet(userId, "user/retrieve")?.run { klaxon.parse<User>(this) }
+        val user = sendGet(userId, "user/retrieve")?.run { gson.fromJson(this, User::class.java) }
         user?.lastIP = dataManager.getLastIP(userId)
         return user
     }
 
     override suspend fun retrieveAvatar(userId: UniqID): ImageAttachment? =
-        sendGet(userId, "user/avatar")?.run { klaxon.parse<ImageAttachment>(this) }
+        sendGet(userId, "user/avatar")?.run { gson.fromJson(this, ImageAttachment::class.java) }
 }

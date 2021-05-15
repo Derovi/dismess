@@ -19,7 +19,7 @@ import java.util.*
 val md = MessageDigest.getInstance("MD5")
 
 fun hashMD5(input: String): BigInteger {
-    return BigInteger(1, md.digest(input.toByteArray(Charsets.UTF_8)))
+    return BigInteger(1, md.digest(input.substring(10).toByteArray(Charsets.UTF_8)))
 }
 
 fun generateUserID(login: String): UniqID = hashMD5(login)
@@ -29,12 +29,11 @@ fun randomUniqID() = BigInteger(128, Random())
 typealias UniqID = BigInteger
 
 fun groupID(vararg idList: UniqID): UniqID {
-    val outputStream = ByteArrayOutputStream()
-    // TODO fix
+    var sum = BigInteger.ZERO
     for (id in idList) {
-        outputStream.write(id.toByteArray())
+        sum += id
     }
-    return UniqID(1, md.digest(outputStream.toByteArray()))
+    return sum
 }
 
 val Int.uniqID: BigInteger

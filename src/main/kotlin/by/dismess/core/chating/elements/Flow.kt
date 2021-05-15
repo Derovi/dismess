@@ -22,8 +22,9 @@ class Flow(
 ) : Element {
 
     val chunks = List<Chunk?>(stored.chunkCount) { null }
-    var lastMessage = if (chunks.isEmpty()) null else
-        MessageID(chunks.last()!!.id, chunks.last()!!.messages.lastIndex)
+    val lastMessage: MessageID?
+        get() = if (chunks.isEmpty()) null else
+            MessageID(chunks.last()!!.id, chunks.last()!!.messages.lastIndex)
 
     val id
         get() = stored.id
@@ -46,7 +47,7 @@ class Flow(
     suspend fun addMessage(message: Message) {
         chunks as MutableList<Chunk?> // gives access to change list
         if (chunks.isEmpty() || chunkAt(chunks.lastIndex)!!.complete) {
-            chunks.add(Chunk(chatManager, ChunkStored(ChunkID(id, chunks.size), false, listOf(message)), loadMode))
+            chunks.add(Chunk(chatManager, ChunkStored(ChunkID(id, chunks.size), false, mutableListOf(message)), loadMode))
         } else {
             chunks.last()!!.addMessage(message)
         }

@@ -90,9 +90,9 @@ class Chat(
     suspend fun sendMessage(message: Message): MessageStatus {
         var status = MessageStatus.ERROR
         coroutineScope {
-            tryInitEncryptor()
-            launch { otherFlow.addMessage(message) }
-            val persistSuccessful = async { otherFlow.persist() } // TODO optimize
+            //        tryInitEncryptor()
+            launch { ownFlow.addMessage(message) }
+            val persistSuccessful = async { ownFlow.persist() } // TODO optimize
             val directSuccessful = async { chatManager.sendDirectMessage(otherID, message) }
             if (directSuccessful.await()) {
                 status = MessageStatus.DELIVERED
