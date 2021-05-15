@@ -30,7 +30,6 @@ class TCPNetworkInterfaceTest {
 
     private suspend fun send(tcp: TCPNetworkInterfaceImpl, port: Int, message: ByteArray) {
         tcp.sendRawMessage(InetSocketAddress(port), message)
-//        println("send successfully")
         ++sendCounter
     }
 
@@ -43,10 +42,10 @@ class TCPNetworkInterfaceTest {
             second.start(InetSocketAddress(2228))
             send(first, 2228, message)
             send(second, 1234, message)
+            Assert.assertEquals(sendCounter, receiveCounter)
+            Assert.assertNotEquals(receiveCounter, 0)
             first.stop()
             second.stop()
         }
-        Assert.assertEquals(sendCounter, receiveCounter)
-        Assert.assertNotEquals(receiveCounter, 0)
     }
 }
