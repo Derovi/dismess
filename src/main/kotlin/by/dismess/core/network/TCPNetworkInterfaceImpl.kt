@@ -9,7 +9,6 @@ import java.net.InetAddress
 import java.net.InetSocketAddress
 import java.net.ServerSocket
 import java.net.Socket
-import java.io.InputStream
 
 class TCPNetworkInterfaceImpl : NetworkInterface {
     private lateinit var serverSocket: ServerSocket
@@ -26,10 +25,12 @@ class TCPNetworkInterfaceImpl : NetworkInterface {
 
     private fun handleConnection(connection: Socket) {
         val stream = connection.getInputStream()
-        val senderAddress = InetAddress.getByAddress(stream.readNBytes(4))
-        val senderPort = twoBytesToInt(stream.readNBytes(2))
+        val array = stream.readBytes()
+        val senderAddress = InetAddress.getByAddress(array.copyOfRange(0,4))
+        val senderPort = twoBytesToInt(array.copyOfRange(4, 6))
         val sender = InetSocketAddress(senderAddress, senderPort)
-        val data = stream.readAllBytes()
+        val data = array.copyOfRange(6, array.size)
+        stream.close()
         receiver(sender, data)
     }
 
