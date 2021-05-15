@@ -1,9 +1,11 @@
 package by.dismess.core.chating.elements
 
+import by.dismess.core.chating.Attachment
 import by.dismess.core.chating.ChatManager
 import by.dismess.core.chating.LoadMode
 import by.dismess.core.chating.MessageStatus
 import by.dismess.core.chating.elements.id.FlowID
+import by.dismess.core.chating.elements.stored.FlowStored
 import by.dismess.core.chating.viewing.ChatIterator
 import by.dismess.core.chating.viewing.FlowIterator
 import by.dismess.core.chating.viewing.MessageIterator
@@ -13,6 +15,7 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
+import java.util.*
 import java.util.concurrent.atomic.AtomicBoolean
 
 /**
@@ -62,14 +65,16 @@ class Chat(
      * Synchronize incomming messages from DHT
      */
     suspend fun synchronize() {
+        val ownFlowID = FlowID(id, ownID)
+        val otherFlowID = FlowID(id, otherID)
         ownFlow = Flow(
             chatManager,
-            chatManager.loadFlow(FlowID(id, ownID), LoadMode.OWN) ?: throw Exception("Can't load own flow"),
+            chatManager.loadFlow(ownFlowID, LoadMode.OWN) ?: FlowStored(ownFlowID, 0),
             LoadMode.OWN
         )
         otherFlow = Flow(
             chatManager,
-            chatManager.loadFlow(FlowID(id, otherID), LoadMode.OTHER) ?: throw Exception("Can't load other flow"),
+            chatManager.loadFlow(FlowID(id, otherID), LoadMode.OTHER) ?: FlowStored(otherFlowID, 0),
             LoadMode.OTHER
         )
     }
@@ -102,10 +107,19 @@ class Chat(
         return status
     }
 
-    val lastMessage: MessageIterator = runBlocking {
-        ChatIterator.create(
-            FlowIterator.create(chatManager, ownFlow, ownFlow.lastMessage!!),
-            FlowIterator.create(chatManager, otherFlow, otherFlow.lastMessage!!)
+    suspend fun sendMessage(text: String, attachments: MutableList<Attachment> = mutableListOf()) {
+        sendMessage(
+            Message(
+                Date(), id, ownID, text, attachments
+            )
         )
     }
+
+    val lastMessage: MessageIterator
+        get() = runBlocking {
+            ChatIterator.create(
+                FlowIterator.create(chatManager, ownFlow, ownFlow.lastMessage!!),
+                FlowIterator.create(chatManager, otherFlow, otherFlow.lastMessage!!)
+            )
+        }
 }

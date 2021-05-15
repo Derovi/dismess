@@ -16,6 +16,7 @@ import by.dismess.core.security.Encryptor
 import by.dismess.core.services.NetworkService
 import by.dismess.core.services.StorageService
 import by.dismess.core.utils.UniqID
+import by.dismess.core.utils.gson
 import by.dismess.core.utils.randomUniqID
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import java.util.concurrent.ConcurrentHashMap
@@ -45,7 +46,7 @@ class ChatManagerImpl(
         return chat
     }
 
-    override val chats = mapOf<UniqID, Chat>()
+    override val chats: Map<UniqID, Chat> = mutableMapOf()
 
     override suspend fun sendDirectMessage(userID: UniqID, message: Message): Boolean =
         userManager.sendPost(userID, "Chats/Send", message)
@@ -121,7 +122,7 @@ class ChatManagerImpl(
         }
         networkService.registerPost("Chats/Start") {
             it.data ?: return@registerPost
-            val message = klaxon.parse<StartChatMessage>(it.data!!) ?: return@registerPost
+            val message = gson.fromJson(it.data!!, StartChatMessage::class.java) ?: return@registerPost
             val chat = Chat(chatID, dataManager.getId(), message.senderID, this)
             chat.synchronize()
             (chats as MutableMap<UniqID, Chat>)[chatID] = chat

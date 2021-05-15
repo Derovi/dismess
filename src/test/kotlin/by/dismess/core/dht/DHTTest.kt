@@ -45,6 +45,7 @@ class DHTTest : KoinTest {
     @Test
     fun findSimpleTest() {
         val network = VirtualNetwork()
+        network.configuration.useSecureNI()
 
         val alice = network.createUser()
         val bob = network.createUser()

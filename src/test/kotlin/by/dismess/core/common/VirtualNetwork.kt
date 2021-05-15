@@ -61,7 +61,9 @@ class VirtualNetwork {
             single { StorageService(get()) }
             single<DataManager> { MockDataManager() }
             single<UserManager> { UserManagerImpl(get(), get(), get()) }
-            single<ChatManager> { ChatManagerImpl(get(), get(), get(), get(), get(), get()) }
+            single<ChatManager> {
+                ChatManagerImpl(get(), get(), get(), get(), get(), get()).also { runBlocking { it.load() } }
+            }
         }
     )
 
