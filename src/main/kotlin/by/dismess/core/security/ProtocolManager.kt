@@ -23,8 +23,9 @@ class ProtocolManager {
         var type = DataType.SEND_BACK_KEY
         if (order == 1.toByte()) {
             type = DataType.KEY
+        } else {
+            encryptor.updateKey()
         }
-        encryptor.updateKey()
         var backOrder: Byte = 1
         val updated = encryptor.setReceiverPublicKey(data.sliceArray(1 until data.size))
         if (!updated) {

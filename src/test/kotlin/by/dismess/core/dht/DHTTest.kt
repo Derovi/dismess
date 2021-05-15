@@ -19,7 +19,7 @@ class DHTTest : KoinTest {
     @Test
     fun findTest() {
         val network = VirtualNetwork()
-
+        network.configuration.useSecureNI()
         val firstUser = network.createUser()
         val usersList = mutableListOf(firstUser)
 
@@ -45,6 +45,7 @@ class DHTTest : KoinTest {
     @Test
     fun findSimpleTest() {
         val network = VirtualNetwork()
+        network.configuration.useSecureNI()
 
         val alice = network.createUser()
         val bob = network.createUser()
@@ -57,7 +58,7 @@ class DHTTest : KoinTest {
     @Test
     fun storeSimpleTest() {
         val network = VirtualNetwork()
-
+        network.configuration.useSecureNI()
         val alice = network.createUser()
         val bob = network.createUser()
         runBlocking { bob.dht.connectTo(alice.id, alice.address) }
@@ -77,6 +78,7 @@ class DHTTest : KoinTest {
     @Test
     fun storeTest() {
         val network = VirtualNetwork()
+        network.configuration.useSecureNI()
         val firstUser = network.createUser()
         val usersList = mutableListOf(firstUser)
 

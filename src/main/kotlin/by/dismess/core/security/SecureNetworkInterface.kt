@@ -79,6 +79,7 @@ class SecureNetworkInterface(
         }
     }
 
+    @ExperimentalCoroutinesApi
     override fun setMessageReceiver(receiver: (sender: InetSocketAddress, data: ByteArray) -> Unit) {
         networkInterface.setMessageReceiver { sender: InetSocketAddress, data: ByteArray ->
             try {
