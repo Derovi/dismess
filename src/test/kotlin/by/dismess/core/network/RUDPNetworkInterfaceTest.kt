@@ -1,5 +1,6 @@
 package by.dismess.core.network
 
+import by.dismess.core.outer.NetworkInterface
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert
 import org.junit.Test
@@ -13,7 +14,7 @@ class RUDPNetworkInterfaceTest {
     private var sendCounter: Int = 0
     private var receiveCounter: Int = 0
 
-    private fun init(): Pair<RUDPNetworkInterfaceImpl, RUDPNetworkInterfaceImpl> {
+    private fun init(): Pair<NetworkInterface, NetworkInterface> {
         val first = RUDPNetworkInterfaceImpl()
         val second = RUDPNetworkInterfaceImpl()
         val receiver = { _: InetSocketAddress, data: ByteArray ->
@@ -26,9 +27,9 @@ class RUDPNetworkInterfaceTest {
         return Pair(first, second)
     }
 
-    private suspend fun send(rudp: RUDPNetworkInterfaceImpl, port: Int, message: ByteArray) {
-        rudp.sendRawMessage(InetSocketAddress(port), message)
+    private suspend fun send(rudp: NetworkInterface, port: Int, message: ByteArray) {
         ++sendCounter
+        rudp.sendRawMessage(InetSocketAddress(port), message)
     }
 
     @Test
@@ -40,11 +41,11 @@ class RUDPNetworkInterfaceTest {
             second.start(InetSocketAddress(2228))
             send(first, 2228, message)
             send(second, 1234, message)
-            Assert.assertEquals(sendCounter, receiveCounter)
-            Assert.assertNotEquals(receiveCounter, 0)
             first.stop()
             second.stop()
         }
+        Assert.assertNotEquals(receiveCounter, 0)
+        Assert.assertEquals(sendCounter, receiveCounter)
     }
 
     @Test
@@ -56,11 +57,11 @@ class RUDPNetworkInterfaceTest {
             second.start(InetSocketAddress(2228))
             send(first, 2228, message)
             send(second, 1234, message)
-            Assert.assertEquals(sendCounter, receiveCounter)
-            Assert.assertNotEquals(receiveCounter, 0)
             first.stop()
             second.stop()
         }
+        Assert.assertEquals(sendCounter, receiveCounter)
+        Assert.assertNotEquals(receiveCounter, 0)
     }
 
     @Test
@@ -74,17 +75,16 @@ class RUDPNetworkInterfaceTest {
                 send(first, 2228, message)
                 send(second, 1234, message)
             }
-            Assert.assertEquals(sendCounter, receiveCounter)
-            Assert.assertNotEquals(receiveCounter, 0)
             first.stop()
             second.stop()
         }
+        Assert.assertEquals(sendCounter, receiveCounter)
+        Assert.assertNotEquals(receiveCounter, 0)
     }
 
     @Test
     fun testStressOrder() {
-        val first = RUDPNetworkInterfaceImpl()
-        val second = RUDPNetworkInterfaceImpl()
+        val (first, second) = init()
         val receiver = { _: InetSocketAddress, data: ByteArray ->
             Assert.assertArrayEquals(byteArrayOf(receiveCounter.toByte()), data)
             receiveCounter += 1
@@ -99,11 +99,11 @@ class RUDPNetworkInterfaceTest {
                 send(first, 2228, message)
             }
             sleep(10L)
-            Assert.assertEquals(sendCounter, receiveCounter)
-            Assert.assertNotEquals(receiveCounter, 0)
             first.stop()
             second.stop()
         }
+        Assert.assertEquals(sendCounter, receiveCounter)
+        Assert.assertNotEquals(receiveCounter, 0)
     }
 
     private fun findFreePort() = ServerSocket(0).use { it.localPort }
@@ -124,7 +124,7 @@ class RUDPNetworkInterfaceTest {
         repeat(usersNumber) {
             sockets.add(InetSocketAddress(findFreePort()))
         }
-        val users: MutableList<RUDPNetworkInterfaceImpl> = mutableListOf()
+        val users: MutableList<NetworkInterface> = mutableListOf()
         val messages: MutableList<MutableList<MutableList<ByteArray>>> = mutableListOf()
         for (i in 0 until usersNumber) {
             messages.add(mutableListOf())
@@ -159,11 +159,11 @@ class RUDPNetworkInterfaceTest {
                 send(users[senderInd], sockets[receiverInd].port, message)
             }
             sleep(10L)
-            Assert.assertEquals(receiveCounter, sendCounter)
-            Assert.assertNotEquals(receiveCounter, 0)
             for (user in users) {
                 user.stop()
             }
         }
+        Assert.assertEquals(receiveCounter, sendCounter)
+        Assert.assertNotEquals(receiveCounter, 0)
     }
 }

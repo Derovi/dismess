@@ -41,6 +41,17 @@ val Int.uniqID: BigInteger
 fun twoBytesToInt(number: ByteArray): Int = (number[0].toInt() and 0xff shl 8) or
         (number[1].toInt() and 0xff)
 
+fun fourBytesToInt(number: ByteArray): Int {
+    var value = 0
+    if (number.size != 4) {
+        return value
+    }
+    for (i in 0..3) {
+        value = value or (number[i].toInt() and 0xff shl 8 * (3 - i))
+    }
+    return value
+}
+
 fun intToBytes(number: Int, size: Int = 1): ByteArray =
     ByteBuffer.allocate(4).putInt(number).array().sliceArray((4 - size)..3)
 
