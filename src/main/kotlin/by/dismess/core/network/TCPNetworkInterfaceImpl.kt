@@ -1,23 +1,15 @@
 package by.dismess.core.network
 
 import by.dismess.core.outer.NetworkInterface
-import by.dismess.core.utils.gson
 import by.dismess.core.utils.intToBytes
 import by.dismess.core.utils.twoBytesToInt
 import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
-import net.joinu.rudp.QueuedDatagramPacket
-import net.joinu.rudp.RUDPSocket
-import net.joinu.rudp.runSuspending
-import net.joinu.rudp.send
-import java.io.DataInputStream
-import java.io.DataOutputStream
-import java.lang.IllegalStateException
 import java.net.InetAddress
 import java.net.InetSocketAddress
 import java.net.ServerSocket
 import java.net.Socket
+import java.io.InputStream
 
 class TCPNetworkInterfaceImpl : NetworkInterface {
     private lateinit var serverSocket: ServerSocket
