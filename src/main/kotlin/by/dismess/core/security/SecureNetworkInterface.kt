@@ -5,6 +5,7 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.sync.Mutex
 import java.lang.IllegalArgumentException
 import java.net.InetSocketAddress
 
@@ -33,6 +34,7 @@ class SecureNetworkInterface(
     private val sessionManager: SessionManager = SessionManager()
 
     private suspend fun tryUpdateKey(address: InetSocketAddress): ByteArray? = sessionManager.tryUpdateKey(address)
+    private val mutex = Mutex()
 
     @ExperimentalCoroutinesApi
     private suspend fun processData(
@@ -67,11 +69,13 @@ class SecureNetworkInterface(
     }
 
     override suspend fun sendRawMessage(address: InetSocketAddress, data: ByteArray) {
+        mutex.lock()
         val updatedKey = tryUpdateKey(address)
         if (updatedKey != null) {
             networkInterface.sendRawMessage(address, updatedKey)
             sessionManager.block(address)
         }
+        mutex.unlock()
         try {
             val encryptedMessage = sessionManager.encrypt(address, data)
             networkInterface.sendRawMessage(address, encryptedMessage)
