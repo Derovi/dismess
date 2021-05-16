@@ -1,7 +1,7 @@
 package by.dismess.core.managers
 
-import by.dismess.core.model.UserID
 import by.dismess.core.chating.attachments.ImageAttachment
+import by.dismess.core.utils.UniqID
 import java.net.InetSocketAddress
 
 interface DataManager {
@@ -13,7 +13,7 @@ interface DataManager {
         const val LAST_IP_PREF = "last_ip."
     }
 
-    suspend fun getId(): UserID
+    suspend fun getId(): UniqID
 
     suspend fun saveLogin(login: String)
     suspend fun getLogin(): String?
@@ -27,6 +27,6 @@ interface DataManager {
     suspend fun setOwnIP(ip: InetSocketAddress)
     suspend fun getOwnIP(): InetSocketAddress?
 
-    suspend fun saveLastIP(userID: UserID, ip: InetSocketAddress)
-    suspend fun getLastIP(userID: UserID): InetSocketAddress?
+    suspend fun saveLastIP(userID: UniqID, ip: InetSocketAddress)
+    suspend fun getLastIP(userID: UniqID): InetSocketAddress?
 }

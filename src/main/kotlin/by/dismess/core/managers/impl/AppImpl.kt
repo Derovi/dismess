@@ -2,7 +2,6 @@ import by.dismess.core.dht.DHT
 import by.dismess.core.managers.App
 import by.dismess.core.managers.DataManager
 import by.dismess.core.model.Invite
-import by.dismess.core.model.UserID
 import by.dismess.core.network.retrievePublicSocketAddress
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.coroutineScope
@@ -14,7 +13,7 @@ class AppImpl(
 ) : App {
     override suspend fun register(login: String, invite: Invite): Unit = coroutineScope {
         saveInitialData(login)
-        GlobalScope.launch { dht.connectTo(UserID(invite.userId), invite.address) }
+        GlobalScope.launch { dht.connectTo(invite.userId, invite.address) }
     }
 
     override suspend fun isRegistered(): Boolean = dataManager.getLogin() != null

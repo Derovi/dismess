@@ -10,7 +10,7 @@ import by.dismess.core.chating.elements.id.MessageID
 class FlowIterator private constructor(
     val chatManager: ChatManager,
     val flow: Flow,
-    var messageID: MessageID
+    var messageID: MessageID?
 ) : MessageIterator {
     lateinit var currentChunk: Chunk
         private set
@@ -23,24 +23,31 @@ class FlowIterator private constructor(
         suspend fun create(
             chatManager: ChatManager,
             flow: Flow,
-            messageID: MessageID
+            messageID: MessageID?
         ): FlowIterator =
             FlowIterator(chatManager, flow, messageID).also {
-                it.currentChunk = flow.chunkAt(messageID.chunkID.index)
+                it.currentChunk = flow.chunkAt(messageID!!.chunkID.index)
                     ?: throw ExceptionInInitializerError("Can't load initial chunk")
             }
     }
 
-    override val value: Message
-        get() = currentChunk.messages[messageID.index]
+    override val value: Message?
+        get() = messageID?.run { currentChunk.messages[messageID!!.index] }
 
     override suspend fun next(): Boolean {
-        if (messageID.index < currentChunk.messages.lastIndex) {
-            messageID = MessageID(messageID.chunkID, messageID.index + 1)
+        if (messageID == null) {
+            if (flow.chunks.isNotEmpty()) {
+                messageID = MessageID(flow.chunks.first()!!.id, 0)
+                return true
+            }
+            return false
+        }
+        if (messageID!!.index < currentChunk.messages.lastIndex) {
+            messageID = MessageID(messageID!!.chunkID, messageID!!.index + 1)
             return true
         }
-        if (messageID.chunkID.index < flow.chunks.lastIndex) {
-            val newChunkID = ChunkID(messageID.chunkID.flowID, messageID.chunkID.index + 1)
+        if (messageID!!.chunkID.index < flow.chunks.lastIndex) {
+            val newChunkID = ChunkID(messageID!!.chunkID.flowID, messageID!!.chunkID.index + 1)
             currentChunk = flow.chunkAt(newChunkID.index) ?: return false
             messageID = MessageID(newChunkID, 0)
         }
@@ -48,12 +55,15 @@ class FlowIterator private constructor(
     }
 
     override suspend fun previous(): Boolean {
-        if (messageID.index > 0) {
-            messageID = MessageID(messageID.chunkID, messageID.index - 1)
+        if (messageID == null) {
+            return false
+        }
+        if (messageID!!.index > 0) {
+            messageID = MessageID(messageID!!.chunkID, messageID!!.index - 1)
             return true
         }
-        if (messageID.chunkID.index > 0) {
-            val newChunkID = ChunkID(messageID.chunkID.flowID, messageID.chunkID.index - 1)
+        if (messageID!!.chunkID.index > 0) {
+            val newChunkID = ChunkID(messageID!!.chunkID.flowID, messageID!!.chunkID.index - 1)
             currentChunk = flow.chunkAt(newChunkID.index) ?: return false
             messageID = MessageID(newChunkID, currentChunk.messages.lastIndex)
         }

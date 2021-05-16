@@ -16,7 +16,6 @@ import by.dismess.core.outer.NetworkInterface
 import by.dismess.core.security.SecureNetworkInterface
 import by.dismess.core.services.NetworkService
 import by.dismess.core.services.StorageService
-import com.beust.klaxon.Klaxon
 import org.koin.core.KoinApplication
 import org.koin.core.context.loadKoinModules
 import org.koin.core.context.unloadKoinModules
@@ -29,7 +28,6 @@ import org.koin.dsl.module
  * Holds dependencies that shouldn't be visible for users
  */
 internal lateinit var App: KoinApplication
-val klaxon = Klaxon()
 
 private var managersModule = module {
     single<UserManager> { UserManagerImpl(get(), get(), get()) }
@@ -39,7 +37,7 @@ private var managersModule = module {
 private var apiModule = module {
     // describes dependencies that should be visible for users
     single<App> { AppImpl(get(), get()) }
-    single<ChatManager> { ChatManagerImpl(get(), get(), get(), get(), get()) }
+    single<ChatManager> { ChatManagerImpl(get(), get(), get(), get(), get(), get()) }
     single { EventBus() }
 }
 
@@ -52,7 +50,7 @@ private var servicesModule = module {
 }
 
 private var dhtModule = module {
-    single<DHT> { DHTImpl(get(), get()) }
+    single<DHT> { DHTImpl(get(), get(), get()) }
 }
 
 fun getModulesList(): List<Module> {
