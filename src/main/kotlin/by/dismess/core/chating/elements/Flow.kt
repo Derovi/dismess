@@ -1,10 +1,12 @@
 package by.dismess.core.chating.elements
 
 import by.dismess.core.chating.ChatManager
+import by.dismess.core.chating.LoadMode
 import by.dismess.core.chating.elements.id.ChunkID
 import by.dismess.core.chating.elements.id.MessageID
 import by.dismess.core.chating.elements.stored.ChunkStored
 import by.dismess.core.chating.elements.stored.FlowStored
+import kotlinx.coroutines.runBlocking
 import java.lang.Integer.max
 
 /**
@@ -16,11 +18,17 @@ import java.lang.Integer.max
  */
 class Flow(
     val chatManager: ChatManager,
-    var stored: FlowStored
+    var stored: FlowStored,
+    val loadMode: LoadMode
 ) : Element {
 
     val chunks = List<Chunk?>(stored.chunkCount) { null }
-    lateinit var lastMessage: MessageID // TODO("Not yet implemented")
+    val lastMessage: MessageID?
+        get() = runBlocking {
+            if (chunks.isEmpty()) null else
+                MessageID(chunkAt(chunks.lastIndex)!!.id, chunkAt(chunks.lastIndex)!!.messages.lastIndex)
+        }
+
     val id
         get() = stored.id
 
@@ -32,7 +40,8 @@ class Flow(
         if (chunks[idx] == null) {
             chunks[idx] = Chunk(
                 chatManager,
-                chatManager.loadChunk(ChunkID(id, idx)) ?: return null
+                chatManager.loadChunk(ChunkID(id, idx), loadMode) ?: return null,
+                loadMode
             )
         }
         return chunks[idx]
@@ -41,21 +50,10 @@ class Flow(
     suspend fun addMessage(message: Message) {
         chunks as MutableList<Chunk?> // gives access to change list
         if (chunks.isEmpty() || chunkAt(chunks.lastIndex)!!.complete) {
-            chunks.add(Chunk(chatManager, ChunkStored(ChunkID(id, chunks.size), listOf(message))))
+            chunks.add(Chunk(chatManager, ChunkStored(ChunkID(id, chunks.size), false, mutableListOf(message)), loadMode))
         } else {
             chunks.last()!!.addMessage(message)
         }
-    }
-
-    override suspend fun accept() {
-        for (idx in max(0, stored.chunkCount - 1) until chunks.size) {
-            chunks[idx]?.accept()
-        }
-        if (stored.chunkCount == chunks.size) {
-            return
-        }
-        val newStored = FlowStored(id, chunks.size)
-        chatManager.acceptFlow(newStored)
     }
 
     override suspend fun persist(): Boolean {
@@ -68,6 +66,6 @@ class Flow(
             return true
         }
         val newStored = FlowStored(id, chunks.size)
-        return chatManager.persistFlow(newStored)
+        return chatManager.persistFlow(newStored, loadMode)
     }
 }

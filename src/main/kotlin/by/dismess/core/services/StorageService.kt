@@ -18,17 +18,10 @@ class StorageService(
     suspend inline fun <reified T> load(key: String): T? =
         storageInterface.loadRawData(key)?.let {
             val data = String(it)
-            when (T::class) {
-                String::class -> data
-                Long::class -> data.toLong()
-                Int::class -> data.toInt()
-                Short::class -> data.toShort()
-                Double::class -> data.toDouble()
-                Float::class -> data.toFloat()
-                Byte::class -> data.toByte()
-                else -> gson.fromJson(data, T::class.java)
-            }
-        } as T?
+            println("des" + data)
+            println(T::class.java.canonicalName)
+            gson.fromJson(data, T::class.java)
+        }
 
     suspend fun saveRaw(key: String, data: String) {
         storageInterface.saveRawData(key, data.toByteArray())

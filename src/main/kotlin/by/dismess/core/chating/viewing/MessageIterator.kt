@@ -3,7 +3,7 @@ package by.dismess.core.chating.viewing
 import by.dismess.core.chating.elements.Message
 
 interface MessageIterator {
-    val value: Message
+    val value: Message?
 
     /**
      * True if has next
