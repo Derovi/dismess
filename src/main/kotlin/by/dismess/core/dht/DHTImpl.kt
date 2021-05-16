@@ -1,8 +1,8 @@
 package by.dismess.core.dht
 
 import by.dismess.core.managers.DataManager
+import by.dismess.core.outer.StorageInterface
 import by.dismess.core.services.NetworkService
-import by.dismess.core.services.StorageService
 import by.dismess.core.utils.UniqID
 import by.dismess.core.utils.generateUserID
 import by.dismess.core.utils.gson
@@ -23,7 +23,7 @@ val RIGHT_BUCKET_BORDER: BigInteger = BigInteger("2").pow(160)
 
 class DHTImpl(
     val networkService: NetworkService,
-    val storageService: StorageService,
+    val storageInterface: StorageInterface,
     val dataManager: DataManager
 ) : DHT {
     private val tableMutex = Mutex()
@@ -52,7 +52,7 @@ class DHTImpl(
         networkService.registerPost("DHT/Store") { message ->
             val data = message.data ?: return@registerPost
             val request = gson.fromJson(data, StoreRequest::class.java) ?: return@registerPost
-            storageService.save(request.key, request.data)
+            storageInterface.saveRawData(request.key, request.data)
         }
     }
 
@@ -68,7 +68,7 @@ class DHTImpl(
 
         networkService.registerGet("DHT/Retrieve") { message ->
             val key = message.data ?: return@registerGet
-            val responseData = storageService.load<ByteArray>(key)
+            val responseData = storageInterface.loadRawData(key)
             val response = gson.toJson(responseData)
             result(response)
         }

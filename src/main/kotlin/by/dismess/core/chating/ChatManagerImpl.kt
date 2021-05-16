@@ -57,10 +57,7 @@ class ChatManagerImpl(
     override suspend fun loadChunk(chunkID: UniqID, chatID: UniqID, loadMode: LoadMode): ChunkStored? {
         var result = storageService.load<ChunkStored>("chunks/$chunkID")
         if (loadMode == LoadMode.OTHER && (result == null || !result.complete)) {
-            val chunkRaw: ByteArray = dht.retrieve("chunks/$chunkID") ?: return null
-            val chatEncryptor = encryptors[chatID] ?: return null
-            val decrypted = chatEncryptor.decrypt(chunkRaw)
-            result = gson.fromJson(String(decrypted), ChunkStored::class.java) ?: return null
+            result = gson.fromJson(String(dht.retrieve("chunks/$chunkID") ?: return null), ChunkStored::class.java) ?: return null
         }
         return result
     }
@@ -69,37 +66,40 @@ class ChatManagerImpl(
         return if (loadMode == LoadMode.OWN) {
             storageService.load("flows/$flowID")
         } else {
-            gson.fromJson(String(dht.retrieve("flows/$flowID") ?: return null), FlowStored::class.java)
+            val result = gson.fromJson(String(dht.retrieve("flows/$flowID") ?: return null), FlowStored::class.java)
+            println(result)
+            result
         }
     }
 
     override suspend fun persistChunk(chunk: ChunkStored, loadMode: LoadMode): Boolean {
-        return if (loadMode == LoadMode.OWN) {
+        return if (loadMode == LoadMode.OTHER) {
             storageService.save("chunks/${chunk.id.uniqID}", chunk)
             true
         } else {
+            storageService.save("chunks/${chunk.id.uniqID}", chunk)
             dht.store("chunks/${chunk.id.uniqID}", gson.toJson(chunk).toByteArray())
         }
     }
 
     override suspend fun persistFlow(flow: FlowStored, loadMode: LoadMode): Boolean {
-        return if (loadMode == LoadMode.OWN) {
+        return if (loadMode == LoadMode.OTHER) {
             storageService.save("flows/${flow.id.uniqID}", flow)
             true
         } else {
+            storageService.save("flows/${flow.id.uniqID}", flow)
             dht.store("flows/${flow.id.uniqID}", gson.toJson(flow).toByteArray())
         }
     }
 
     private fun registerHandlers() {
         networkService.registerPost("Chats/Send") {
-            println("mes rec!")
             it.data ?: return@registerPost
             val message = gson.fromJson(it.data!!, Message::class.java) ?: return@registerPost
+            println("got" + message.text)
             val chat = chats[message.chatID] ?: return@registerPost
             chat.otherFlow.addMessage(message)
             chat.otherFlow.persist() // TODO optimize
-            println("Add!")
             eventBUS.callEvent(MessageEvent(message))
         }
         networkService.registerPost("Chats/Key") {

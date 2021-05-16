@@ -67,6 +67,14 @@ class VirtualNetwork {
         }
     )
 
+    fun makeOffline(user: VirtualUser) {
+        networkInterfaces.remove(user.address)
+    }
+
+    fun makeOnline(user: VirtualUser) {
+        register(user.virtualNI)
+    }
+
     fun register(networkInterface: VirtualNetworkInterface) {
         networkInterfaces[networkInterface.ownAddress] = networkInterface
     }

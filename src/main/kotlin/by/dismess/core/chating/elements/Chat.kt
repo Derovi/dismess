@@ -89,7 +89,7 @@ class Chat(
      */
     suspend fun sendMessage(message: Message): MessageStatus {
         var status = MessageStatus.ERROR
-        coroutineScope {
+        runBlocking {
             //        tryInitEncryptor()
             launch { ownFlow.addMessage(message) }
             val persistSuccessful = async { ownFlow.persist() } // TODO optimize

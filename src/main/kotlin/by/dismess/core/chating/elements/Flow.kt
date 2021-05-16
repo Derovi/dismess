@@ -6,6 +6,7 @@ import by.dismess.core.chating.elements.id.ChunkID
 import by.dismess.core.chating.elements.id.MessageID
 import by.dismess.core.chating.elements.stored.ChunkStored
 import by.dismess.core.chating.elements.stored.FlowStored
+import kotlinx.coroutines.runBlocking
 import java.lang.Integer.max
 
 /**
@@ -23,8 +24,10 @@ class Flow(
 
     val chunks = List<Chunk?>(stored.chunkCount) { null }
     val lastMessage: MessageID?
-        get() = if (chunks.isEmpty()) null else
-            MessageID(chunks.last()!!.id, chunks.last()!!.messages.lastIndex)
+        get() = runBlocking {
+            if (chunks.isEmpty()) null else
+                MessageID(chunkAt(chunks.lastIndex)!!.id, chunkAt(chunks.lastIndex)!!.messages.lastIndex)
+        }
 
     val id
         get() = stored.id

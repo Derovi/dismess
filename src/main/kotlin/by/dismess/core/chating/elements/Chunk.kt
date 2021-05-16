@@ -46,9 +46,6 @@ class Chunk(
     }
 
     override suspend fun persist(): Boolean {
-        if (storedSize == messages.size) {
-            return true
-        }
         if (!chatManager.persistChunk(ChunkStored(id, complete, messages), loadMode)) {
             return false
         }

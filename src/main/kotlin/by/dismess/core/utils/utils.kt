@@ -19,7 +19,7 @@ import java.util.*
 val md = MessageDigest.getInstance("MD5")
 
 fun hashMD5(input: String): BigInteger {
-    return BigInteger(1, md.digest(input.substring(10).toByteArray(Charsets.UTF_8)))
+    return BigInteger(1, md.digest(input.substring(0, 8).toByteArray(Charsets.UTF_8)))
 }
 
 fun generateUserID(login: String): UniqID = hashMD5(login)
