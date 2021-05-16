@@ -9,27 +9,28 @@ import java.net.InetSocketAddress
 import java.net.ServerSocket
 import kotlin.random.Random
 
-class RUDPNetworkInterfaceTest {
+class TCPNetworkInterfaceTest {
     private lateinit var message: ByteArray
     private var sendCounter: Int = 0
     private var receiveCounter: Int = 0
 
     private fun init(): Pair<NetworkInterface, NetworkInterface> {
-        val first = RUDPNetworkInterfaceImpl()
-        val second = RUDPNetworkInterfaceImpl()
+        val first = TCPNetworkInterfaceImpl()
+        val second = TCPNetworkInterfaceImpl()
         val receiver = { _: InetSocketAddress, data: ByteArray ->
-            Assert.assertArrayEquals(message, data)
             ++receiveCounter
-            Unit
+            Assert.assertArrayEquals(message, data)
+            println("Yo")
+//            println(message.decodeToString())
         }
         first.setMessageReceiver(receiver)
         second.setMessageReceiver(receiver)
         return Pair(first, second)
     }
 
-    private suspend fun send(rudp: NetworkInterface, port: Int, message: ByteArray) {
+    private suspend fun send(ni: NetworkInterface, port: Int, message: ByteArray) {
         ++sendCounter
-        rudp.sendRawMessage(InetSocketAddress(port), message)
+        ni.sendRawMessage(InetSocketAddress(port), message)
     }
 
     @Test
@@ -39,6 +40,8 @@ class RUDPNetworkInterfaceTest {
         runBlocking {
             first.start(InetSocketAddress(1234))
             second.start(InetSocketAddress(2228))
+            send(first, 2228, message)
+            send(first, 2228, message)
             send(first, 2228, message)
             send(second, 1234, message)
             first.stop()
@@ -71,7 +74,7 @@ class RUDPNetworkInterfaceTest {
         runBlocking {
             first.start(InetSocketAddress(1234))
             second.start(InetSocketAddress(2228))
-            repeat(1000) {
+            repeat(10) {
                 send(first, 2228, message)
                 send(second, 1234, message)
             }
@@ -94,11 +97,11 @@ class RUDPNetworkInterfaceTest {
         runBlocking {
             first.start(InetSocketAddress(1234))
             second.start(InetSocketAddress(2228))
-            repeat(1000) {
+            repeat(10) {
                 message = byteArrayOf(sendCounter.toByte())
                 send(first, 2228, message)
             }
-            sleep(10L)
+            sleep(100L)
             first.stop()
             second.stop()
         }
@@ -134,9 +137,10 @@ class RUDPNetworkInterfaceTest {
         }
         runBlocking {
             for (i in 0 until sockets.size) {
-                val user = RUDPNetworkInterfaceImpl()
+                val user = TCPNetworkInterfaceImpl()
                 user.start(sockets[i])
                 user.setMessageReceiver { sender: InetSocketAddress, data: ByteArray ->
+                    ++receiveCounter
                     var senderInd = 0
                     for (j in 0 until sockets.size) {
                         if (sockets[j].port == sender.port) {
@@ -146,7 +150,6 @@ class RUDPNetworkInterfaceTest {
                     val message = messages[senderInd][i][0]
                     messages[senderInd][i].removeAt(0)
                     Assert.assertArrayEquals(message, data)
-                    ++receiveCounter
                     Unit
                 }
                 users.add(user)
