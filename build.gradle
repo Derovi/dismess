@@ -1,0 +1,60 @@
+plugins {
+    id 'java'
+    id 'org.jetbrains.kotlin.jvm' version '1.4.21'
+    id 'maven-publish'
+}
+
+group 'by.dismess.core'
+version '0.6-snapshot'
+
+repositories {
+    jcenter()
+    mavenCentral()
+    maven { url "https://jitpack.io" }
+}
+
+dependencies {
+    implementation "org.jetbrains.kotlin:kotlin-stdlib"
+    implementation "org.jetbrains.kotlin:kotlin-reflect:1.4.21"
+    implementation group: 'org.koin', name: 'koin-gradle-plugin', version: '2.2.2'
+    implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-core:1.4.2'
+    implementation 'com.github.seniorjoinu:reliable-udp:0.3.1'
+    compile "com.github.mucaho:jnetrobust-core:0.0.2"
+    compile "com.github.mucaho:jnetrobust-samples:0.0.2"
+//    implementation 'com.github.mucaho:jnetrobust-core:0.0.2'
+//    implementation 'com.github.mucaho:jnetrobust-samples:0.0.2'
+    implementation group: 'org.slf4j', name: 'slf4j-simple', version: '1.7.26'
+    implementation 'com.google.code.gson:gson:2.8.6'
+    implementation group: 'de.javawi.jstun', name: 'jstun', version: '0.7.4'
+    implementation group: 'org.slf4j', name: 'slf4j-api', version: '1.7.30'
+    testImplementation group: 'org.slf4j', name: 'slf4j-simple', version: '1.7.30'
+    testCompile group: 'junit', name: 'junit', version: '4.12'
+    testImplementation group: 'org.koin', name: 'koin-test', version: '2.2.2'
+    testImplementation group: 'com.nhaarman', name: 'mockito-kotlin', version: '0.9.0'
+}
+
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            from components.java
+        }
+    }
+    repositories {
+        maven {
+            name = "GitHubPackages"
+            url = "https://maven.pkg.github.com/derovi/dismess"
+            credentials {
+                username = System.getenv("GITHUB_ACTOR")
+                password = System.getenv("GITHUB_TOKEN")
+            }
+        }
+    }
+}
+
+allprojects {
+    repositories {
+        mavenLocal()
+        jcenter()
+        maven { url "https://jitpack.io" }
+    }
+}
